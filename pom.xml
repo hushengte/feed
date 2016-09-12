@@ -271,6 +271,7 @@
 	            <version>0.10</version>
 	            <configuration>
 	                <message>Maven artifacts for ${project.version}</message>
+	                <merge>true</merge>
 	                <noJekyll>true</noJekyll>
 	                <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
 	                <branch>refs/heads/master</branch>
