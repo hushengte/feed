@@ -1,0 +1,7 @@
+/**/.externalToolBuilders/
+/**/.settings/
+/**/target/
+/**/.classpath
+/**/.project
+/**/logs/
+/**/*.log
