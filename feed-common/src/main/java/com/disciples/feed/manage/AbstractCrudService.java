@@ -27,7 +27,7 @@ import com.disciples.feed.Identifiable;
  * @param <DTO> 数据传输对象 (Data Transfer Object)
  * @param <MODEL> 领域对象 (Domain Object)
  */
-public abstract class AbstractCrudService<DTO extends Identifiable, MODEL extends Identifiable, DAO extends JpaRepository<MODEL, Integer>>
+public abstract class AbstractCrudService<DTO extends Identifiable<Integer>, MODEL extends Identifiable<Integer>, DAO extends JpaRepository<MODEL, Integer>>
 		implements CrudService<DTO>, Converter<MODEL, DTO> {
     
     protected static final Logger LOG = LoggerFactory.getLogger(AbstractCrudService.class);

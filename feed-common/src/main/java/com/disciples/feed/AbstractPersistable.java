@@ -7,13 +7,13 @@ import javax.persistence.MappedSuperclass;
 import javax.persistence.TableGenerator;
 
 @MappedSuperclass
-public abstract class AbstractPersistable implements Identifiable {
+public abstract class AbstractPersistable implements Identifiable<Integer> {
 
     private static final long serialVersionUID = 2436149785969523480L;
     
     public static final String TABLE_GENERATOR_NAME = "ID_INCREMENT_GENERATOR";
     
-    protected Integer id;
+    private Integer id;
 
     @Id
     @GeneratedValue(strategy = GenerationType.TABLE, generator = TABLE_GENERATOR_NAME)

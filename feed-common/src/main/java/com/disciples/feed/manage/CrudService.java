@@ -10,7 +10,7 @@ import com.disciples.feed.Identifiable;
  * 基本的增、删、改、查服务接口
  * @param <T> 必须实现Identifiable接口
  */
-public interface CrudService<T extends Identifiable> {
+public interface CrudService<T extends Identifiable<Integer>> {
 
 	/**
 	 * 获取一页数据

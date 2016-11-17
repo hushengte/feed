@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.disciples.feed.Identifiable;
 import com.disciples.feed.Response;
 
-public abstract class AbstractCrudController<DTO extends Identifiable, S extends CrudService<DTO>> {
+public abstract class AbstractCrudController<DTO extends Identifiable<Integer>, S extends CrudService<DTO>> {
     
     @Autowired
     protected S crudService;

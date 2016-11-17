@@ -2,9 +2,9 @@ package com.disciples.feed;
 
 import java.io.Serializable;
 
-public interface Identifiable extends Serializable {
+public interface Identifiable<ID> extends Serializable {
 
-    Integer getId();
+	ID getId();
 
-    void setId(Integer id);
+    void setId(ID id);
 }

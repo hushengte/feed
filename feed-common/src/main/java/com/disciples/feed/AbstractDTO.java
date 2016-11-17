@@ -1,9 +1,9 @@
 package com.disciples.feed;
 
 @SuppressWarnings("serial")
-public abstract class AbstractDTO implements Identifiable {
+public abstract class AbstractDTO implements Identifiable<Integer> {
     
-    protected Integer id = 0;
+    private Integer id = 0;
     
     protected AbstractDTO() {}
     

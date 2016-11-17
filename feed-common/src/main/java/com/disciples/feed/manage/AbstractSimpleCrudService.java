@@ -23,7 +23,7 @@ import com.disciples.feed.Identifiable;
  * @author disciples
  * @param <MODEL> 领域对象 (Domain Object)
  */
-public abstract class AbstractSimpleCrudService<MODEL extends Identifiable, DAO extends JpaRepository<MODEL, Integer>>
+public abstract class AbstractSimpleCrudService<MODEL extends Identifiable<Integer>, DAO extends JpaRepository<MODEL, Integer>>
 		implements CrudService<MODEL> {
     
     protected static final Logger LOG = LoggerFactory.getLogger(AbstractSimpleCrudService.class);
