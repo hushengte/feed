@@ -1,13 +1,13 @@
 package com.disciples.feed;
 
 @SuppressWarnings("serial")
-public abstract class AbstractDTO implements Identifiable<Integer> {
+public abstract class AbstractDto implements Identifiable<Integer> {
     
-    private Integer id = 0;
+    private Integer id;
     
-    protected AbstractDTO() {}
+    protected AbstractDto() {}
     
-    protected AbstractDTO(Integer id) {
+    public AbstractDto(Integer id) {
         this.setId(id);
     }
 
@@ -37,7 +37,7 @@ public abstract class AbstractDTO implements Identifiable<Integer> {
         if (!getClass().equals(obj.getClass())) {
             return false;
         }
-        AbstractDTO that = (AbstractDTO) obj;
+        AbstractDto that = (AbstractDto) obj;
         return this.getId().equals(that.getId());
     }
 

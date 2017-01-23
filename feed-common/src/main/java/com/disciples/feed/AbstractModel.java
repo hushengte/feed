@@ -7,7 +7,7 @@ import javax.persistence.MappedSuperclass;
 import javax.persistence.TableGenerator;
 
 @MappedSuperclass
-public abstract class AbstractPersistable implements Identifiable<Integer> {
+public abstract class AbstractModel implements Identifiable<Integer> {
 
     private static final long serialVersionUID = 2436149785969523480L;
     
@@ -44,7 +44,7 @@ public abstract class AbstractPersistable implements Identifiable<Integer> {
         if (!getClass().equals(obj.getClass())) {
             return false;
         }
-        AbstractPersistable that = (AbstractPersistable) obj;
+        AbstractModel that = (AbstractModel) obj;
         return null == this.getId() ? false : this.getId().equals(that.getId());
     }
 

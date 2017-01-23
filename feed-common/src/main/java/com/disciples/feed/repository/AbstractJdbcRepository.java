@@ -1,11 +1,13 @@
 package com.disciples.feed.repository;
 
-import java.beans.PropertyDescriptor;
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -16,9 +18,9 @@ import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -31,6 +33,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.util.ReflectionUtils.FieldCallback;
 import org.springframework.util.StringUtils;
 
 /**
@@ -47,7 +51,7 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID extends Serializable> implements JdbcRepository<T, ID> {
     
-    protected static final Logger LOG = LoggerFactory.getLogger(AbstractJdbcRepository.class); 
+    protected Logger logger = LoggerFactory.getLogger(AbstractJdbcRepository.class); 
     
     public static final String QUERY_ALL = "select * from %s";
     public static final String QUERY_FIND_BY_SINGLE_COLUMN = "select * from %s where %s = ?";
@@ -66,12 +70,12 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
     private static final String DEFAULT_ID_NAME = "id";
     
     @Resource
-    protected JdbcTemplate jdbcTemplate;
+    private JdbcTemplate jdbcTemplate;
     
-    protected Class<T> domainClass;
-    protected PersistableBeanPropertyMapper<T> mappingContext;
-    protected String tableName;
-    protected String idName = DEFAULT_ID_NAME;
+    private Class<T> domainClass;
+    private PersistableBeanPropertyMapper<T> mappingContext;
+    private String tableName;
+    private String idName = DEFAULT_ID_NAME;
     
     public AbstractJdbcRepository(Class<T> domainClass, String tableName) {
         Assert.notNull(domainClass, "The given domainClass must not be null.");
@@ -111,7 +115,7 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         if (sort != null) {
         	sb.append(" order by ");
             for (Order order : sort) {
-            	sb.append(mappingContext.getColumn(order.getProperty())).append(' ').append(order.getDirection().toString()).append(',');
+            	sb.append(mappingContext.propertyToColumnMap.get(order.getProperty())).append(' ').append(order.getDirection().toString()).append(',');
             }
             sb.deleteCharAt(sb.length() - 1);
         }
@@ -173,13 +177,13 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
             }
             final List<Object> argsList = new ArrayList<Object>();
             for (String property : mappingContext.propertyList) {
-                if (!property.equals(mappingContext.getProperty(idName))) {
+                if (!property.equals(mappingContext.columnToPropertyMap.get(idName))) {
                     argsList.add(bw.getPropertyValue(property));
                 }
             }
             String columnStr = buildColumnList(mappingContext.columnList, true);
             final String sql = String.format(INSERT_SINGLE, tableName, columnStr, buildPlaceholders(argsList));
-            LOG.debug(sql);
+            logger.debug(sql);
             GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
             jdbcTemplate.update(new PreparedStatementCreator() {
                 @Override
@@ -192,19 +196,21 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
                 }
             }, keyHolder);
             id = (ID) keyHolder.getKey();
-            bw.setPropertyValue(mappingContext.getProperty(idName), id);
+            bw.setPropertyValue(mappingContext.columnToPropertyMap.get(idName), id);
             return entity;
         } else {
-            if (exists(id)) {
-                throw new IllegalArgumentException("Entity with id: " + id + " already exist.");
-            }
-            List<Object> argsList = new ArrayList<Object>();
+        	List<Object> argsList = new ArrayList<Object>();
+            StringBuilder columns = new StringBuilder();
             for (String property : mappingContext.propertyList) {
                 argsList.add(bw.getPropertyValue(property));
+                columns.append(mappingContext.propertyToColumnMap.get(property)).append("=?,");
             }
-            String columnStr = buildColumnList(mappingContext.columnList, false);
-            String sql = String.format(INSERT_SINGLE, tableName, columnStr, buildPlaceholders(argsList));
-            LOG.debug(sql);
+            if (columns.length() > 0) {
+            	columns.deleteCharAt(columns.length() - 1);
+            }
+            String sql = String.format(UPDATE_BY_SINGLE_COLUMN, tableName, columns.toString(), idName);
+            logger.debug(sql);
+            argsList.add(id);
             jdbcTemplate.update(sql, argsList.toArray());
             return entity;
         }
@@ -220,19 +226,19 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
 	}
     
     @Override
-    public boolean updateById(ID id, Map<String, Object> values) {
-        Assert.notNull(values, "The given values must not be null.");
+    public boolean updateById(ID id, Map<String, Object> columnArgs) {
+        Assert.notNull(columnArgs, "The given values must not be null.");
         StringBuilder sb = new StringBuilder();
         // "column1=?,column2=?,...,columnN=?"
-        for (Map.Entry<String, Object> entry : values.entrySet()) {
-            sb.append(mappingContext.getColumn(entry.getKey())).append("=?,");
+        for (Map.Entry<String, Object> entry : columnArgs.entrySet()) {
+            sb.append(mappingContext.propertyToColumnMap.get(entry.getKey())).append("=?,");
         }
         if (sb.length() == 0) {
             return false;
         }
         String sql = String.format(UPDATE_BY_SINGLE_COLUMN, tableName, sb.deleteCharAt(sb.length() - 1).toString(), idName);
-        LOG.debug(sql);
-        Object[] valuesArray = values.values().toArray();
+        logger.debug(sql);
+        Object[] valuesArray = columnArgs.values().toArray();
         Object[] args = new Object[valuesArray.length + 1];
         System.arraycopy(valuesArray, 0, args, 0, valuesArray.length);
         args[args.length - 1] = id;
@@ -243,7 +249,7 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
     public boolean exists(ID id) {
         Assert.notNull(id, "The given id must not be null!");
         String sql = String.format(QUERY_COUNT_BY_SINGLE_COLUMN, tableName, idName);
-        LOG.debug(sql);
+        logger.debug(sql);
         Long count = jdbcTemplate.queryForObject(sql, new Object[] {id}, Long.class);
         return count != null && count > 0;
     }
@@ -251,21 +257,21 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
     @Override
     public long count() {
         String sql = String.format(QUERY_COUNT_ALL, tableName);
-        LOG.debug(sql);
+        logger.debug(sql);
         return jdbcTemplate.queryForObject(sql, Long.class);
     }
     
     @Override
     public List<T> findAll() {
         String sql = String.format(QUERY_ALL, tableName);
-        LOG.debug(sql);
+        logger.debug(sql);
         return jdbcTemplate.query(sql, mappingContext);
     }
     
     @Override
     public List<T> findAll(Sort sort) {
         String sql = String.format(appendOrderBy(QUERY_ALL, sort), tableName);
-        LOG.debug(sql);
+        logger.debug(sql);
         return jdbcTemplate.query(sql, mappingContext);
     }
 
@@ -279,7 +285,7 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         long total = count();
         if (total > 0) {
             String sql = String.format(appendPaging(appendOrderBy(QUERY_ALL, pageable.getSort()), pageable), tableName);
-            LOG.debug(sql);
+            logger.debug(sql);
             contents = jdbcTemplate.query(sql, mappingContext);
         }
         return new PageImpl<T>(contents, pageable, total);
@@ -289,7 +295,7 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
     public T findOne(ID id) {
         Assert.notNull(id, "The given id must not be null!");
         String sql = String.format(QUERY_FIND_BY_SINGLE_COLUMN, tableName, idName);
-        LOG.debug(sql);
+        logger.debug(sql);
         List<T> resultList = jdbcTemplate.query(sql, new Object[] {id}, mappingContext);
         if (resultList.size() == 0) {
             return null;
@@ -305,47 +311,47 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
             args.add(id);
         }
         String sql = String.format(QUERY_IN, tableName, idName, buildPlaceholders(ids));
-        LOG.debug(sql);
+        logger.debug(sql);
         return jdbcTemplate.query(sql, args.toArray(), mappingContext);
     }
 
     @Override
-    public List<T> findBy(String condition, Object[] values) {
-        return findBy(condition, values, (Sort)null);
+    public List<T> findBy(String condition, Object... args) {
+        return findBy(condition, (Sort)null, args);
     }
 
     @Override
-    public List<T> findBy(String condition, Object[] values, Sort sort) {
+    public List<T> findBy(String condition, Sort sort, Object... args) {
         Assert.notNull(condition, "The given condition must not be null.");
         String sql = appendOrderBy(appendWhereClause(String.format(QUERY_ALL, tableName), condition), sort);
-        LOG.debug(sql);
-        return jdbcTemplate.query(sql, values, mappingContext);
+        logger.debug(sql);
+        return jdbcTemplate.query(sql, mappingContext, args);
     }
     
-    public List<T> findBySql(String sql, Object[] values){
-    	LOG.debug(sql);
-    	return jdbcTemplate.query(sql, values, mappingContext);
+    public List<T> findBySql(String sql, Object... args){
+    	logger.debug(sql);
+    	return jdbcTemplate.query(sql, mappingContext, args);
     }
 
     @Override
-    public Page<T> findBy(String condition, Object[] values, Pageable pageable) {
+    public Page<T> findBy(String condition, Pageable pageable, Object... args) {
         Assert.notNull(condition, "The given condition must not be null.");
         List<T> contents = Collections.emptyList();
         String countSql = appendWhereClause(String.format(QUERY_COUNT_ALL, tableName), condition);
-        LOG.debug(countSql);
-        Integer total = jdbcTemplate.queryForObject(countSql, values, Integer.class);
+        logger.debug(countSql);
+        Integer total = jdbcTemplate.queryForObject(countSql, Integer.class, args);
         if (total > 0) {
             String sql = appendOrderBy(appendWhereClause(String.format(QUERY_ALL, tableName), condition), pageable.getSort());
             sql = appendPaging(sql, pageable);
-            LOG.debug(sql);
-            contents = jdbcTemplate.query(sql, values, mappingContext);
+            logger.debug(sql);
+            contents = jdbcTemplate.query(sql, mappingContext, args);
         }
         return new PageImpl<T>(contents, pageable, total);
     }
 
     @Override
-    public T findOneBy(String condition, Object[] values) {
-        List<T> result = findBy(condition, values);
+    public T findOneBy(String condition, Object... args) {
+        List<T> result = findBy(condition, args);
         if (result.size() > 0) {
             return result.get(0);
         }
@@ -356,7 +362,7 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
     public void delete(ID id) {
         Assert.notNull(id, "The given id must not be null!");
         String sql = String.format(DELETE_BY_SINGLE_COLUMN, tableName, idName);
-        LOG.debug(sql);
+        logger.debug(sql);
         jdbcTemplate.update(sql, id);
     }
 
@@ -374,21 +380,41 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
             idList.add(entity.getId());
         }
         String sql = String.format(DELETE_IN, tableName, idName, buildPlaceholders(idList));
-        LOG.debug(sql);
+        logger.debug(sql);
         jdbcTemplate.update(sql, idList.toArray());
     }
     
     @Override
     public void deleteAll() {
         String sql = String.format(DELETE_ALL, tableName);
-        LOG.debug(sql);
+        logger.debug(sql);
         jdbcTemplate.update(sql);
     }
     
-    /**
+    public JdbcTemplate getJdbcTemplate() {
+		return jdbcTemplate;
+	}
+
+	public Class<T> getDomainClass() {
+		return domainClass;
+	}
+
+	public PersistableBeanPropertyMapper<T> getMappingContext() {
+		return mappingContext;
+	}
+
+	public String getTableName() {
+		return tableName;
+	}
+
+	public String getIdName() {
+		return idName;
+	}
+
+	/**
      * TODO: 解析 JPA的注解，更好地支持 property 到 column 的映射
      */
-    private static class PersistableBeanPropertyMapper<T> extends BeanPropertyRowMapper<T> {
+    private static class PersistableBeanPropertyMapper<T> extends BeanPropertyRowMapper<T> implements FieldCallback {
         
         private Map<String, String> propertyToColumnMap;
         private Map<String, String> columnToPropertyMap;
@@ -406,27 +432,25 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
             columnToPropertyMap = new HashMap<String, String>();
             propertyList = new ArrayList<String>();
             columnList = new ArrayList<String>();
-            for (PropertyDescriptor pd : BeanUtils.getPropertyDescriptors(mappedClass)) {
-                String propertyName = pd.getName();
-                String columnName = super.underscoreName(propertyName);
-                if (!"class".equals(propertyName) && !"new".equals(propertyName)) {
-                    propertyList.add(propertyName);
-                    columnList.add(columnName);
-                    propertyToColumnMap.put(propertyName, columnName);
-                    columnToPropertyMap.put(columnName, propertyName);
-                }
-            }
+            ReflectionUtils.doWithFields(mappedClass, this);
             super.initialize(mappedClass);
         }
         
-        public String getColumn(String property) {
-            return propertyToColumnMap.get(property);
-        }
-        
-        public String getProperty(String column) {
-            return columnToPropertyMap.get(column);
-        }
-        
+        @Override
+		public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
+        	//skip static fields, collection fields
+        	if (Modifier.isStatic(field.getModifiers()) || Collection.class.isAssignableFrom(field.getType())) {
+        		return;
+        	}
+			String propertyName = field.getName();
+			//TODO: FIXME
+			Value value = field.getAnnotation(Value.class);
+            String columnName = value == null ? underscoreName(propertyName) : value.value();
+            propertyList.add(propertyName);
+            columnList.add(columnName);
+            propertyToColumnMap.put(propertyName, columnName);
+            columnToPropertyMap.put(columnName, propertyName);
+		}
     }
     
 }

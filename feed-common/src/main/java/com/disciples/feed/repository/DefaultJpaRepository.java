@@ -11,12 +11,12 @@ import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional(readOnly = true)
-public class EnhanceJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> {
+public class DefaultJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> {
 
     private final JpaEntityInformation<T, ?> entityInformation;
     private final EntityManager entityManager;
     
-    public EnhanceJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
+    public DefaultJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
         super(entityInformation, entityManager);
         this.entityInformation = entityInformation;
         this.entityManager = entityManager;
