@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
+import org.springframework.util.StringUtils;
 
 public abstract class MapUtils {
 
@@ -15,9 +16,17 @@ public abstract class MapUtils {
 	}
 	
 	public static Integer getInt(Map<String, Object> map, String key, Integer defaultValue) {
-		Number value = getValue(map, key, Number.class);
+		Integer value = getValue(map, key, Integer.class);
 		if (value != null) {
-			return NumberUtils.convertNumberToTargetClass(value, Integer.class);
+			return value;
+		}
+		String text = getValue(map, key, String.class);
+		if (StringUtils.hasText(text)) {
+			try {
+				return NumberUtils.parseNumber(text, Integer.class);
+			} catch (RuntimeException e) {
+				//ignore
+			}
 		}
 		return defaultValue;
 	}
@@ -28,7 +37,18 @@ public abstract class MapUtils {
 	
 	public static Boolean getBoolean(Map<String, Object> map, String key) {
 		Boolean value = getValue(map, key, Boolean.class);
-		return value != null ? value : Boolean.FALSE;
+		if (value != null) {
+			return value;
+		}
+		String text = getValue(map, key, String.class);
+		if (StringUtils.hasText(text)) {
+			try {
+				return Boolean.valueOf(text.trim());
+			} catch (RuntimeException e) {
+				//ignore
+			}
+		}
+		return Boolean.FALSE;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -60,7 +80,8 @@ public abstract class MapUtils {
 			try {
 				return valueType.cast(value);
 			} catch (ClassCastException e) {
-				if (String.class == valueType && value != null) {
+				//value is not null
+				if (String.class == valueType) {
 					return valueType.cast(value.toString());
 				}
 				return null;
