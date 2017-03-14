@@ -50,6 +50,12 @@
 		</dependency>
 		
 		<dependency>
+		    <groupId>org.hibernate.javax.persistence</groupId>
+		    <artifactId>hibernate-jpa-2.1-api</artifactId>
+		    <version>1.0.0.Final</version>
+		</dependency>
+		
+		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<version>${jackson.version}</version>
@@ -63,10 +69,10 @@
 		
 		<!-- Option Scope -->
 		<dependency>
-		    <groupId>org.hibernate.javax.persistence</groupId>
-		    <artifactId>hibernate-jpa-2.1-api</artifactId>
-		    <version>1.0.0.Final</version>
-		    <optional>true</optional>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-orm</artifactId>
+			<version>${spring.version}</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.data</groupId>
@@ -75,25 +81,20 @@
 			<optional>true</optional>
 		</dependency>
 		
-		<!-- Test scope -->
-		<dependency>
-			<groupId>com.h2database</groupId>
-		    <artifactId>h2</artifactId>
-		    <version>1.4.192</version>
-		    <scope>test</scope>
-		</dependency>
 		<dependency>  
 		    <groupId>org.hibernate</groupId>  
 		    <artifactId>hibernate-core</artifactId>  
 		    <version>${hibernate.version}</version>
-		    <scope>test</scope>
+		    <optional>true</optional>
 	    </dependency>
 	    <dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-entitymanager</artifactId>
 			<version>${hibernate.version}</version>
-			<scope>test</scope>
+			<optional>true</optional>
 		</dependency>
+		
+		<!-- Test scope -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -105,6 +106,12 @@
 			<artifactId>spring-test</artifactId>
 			<version>${spring.version}</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+		    <artifactId>h2</artifactId>
+		    <version>1.4.192</version>
+		    <scope>test</scope>
 		</dependency>
 		
 	</dependencies>
