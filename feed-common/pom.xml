@@ -14,7 +14,7 @@
 		<spring.data.commons.version>1.12.2.RELEASE</spring.data.commons.version>
 		<spring.data.jpa.version>1.10.1.RELEASE</spring.data.jpa.version>
 		
-		<jackson.version>2.4.5</jackson.version>
+		<jackson.version>2.6.5</jackson.version>
 		<slf4j.log4j12.version>1.7.10</slf4j.log4j12.version>
 		
 		<hibernate.version>4.3.9.Final</hibernate.version>
