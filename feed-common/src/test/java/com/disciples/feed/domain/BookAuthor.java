@@ -6,12 +6,12 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import com.disciples.feed.AbstractModel;
+import com.disciples.feed.BaseEntity;
 
 @SuppressWarnings("serial")
 @Entity
 @Table(name = "fc_book_author")
-public class BookAuthor extends AbstractModel {
+public class BookAuthor extends BaseEntity {
 
 	private Book book;
 	private Author author;

@@ -6,12 +6,12 @@ import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import com.disciples.feed.AbstractModel;
+import com.disciples.feed.BaseEntity;
 
 @SuppressWarnings("serial")
 @Entity
 @Table(name = "fc_publisher")
-public class Publisher extends AbstractModel {
+public class Publisher extends BaseEntity {
 
 	private String name;
 	private String place;

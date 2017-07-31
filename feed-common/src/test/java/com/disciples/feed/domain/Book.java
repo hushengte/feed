@@ -11,13 +11,13 @@ import javax.persistence.NamedEntityGraph;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import com.disciples.feed.AbstractModel;
+import com.disciples.feed.BaseEntity;
 
 @SuppressWarnings("serial")
 @Entity
 @Table(name = "fc_book")
 @NamedEntityGraph(name = "Book.authors", attributeNodes = @NamedAttributeNode("authors"))
-public class Book extends AbstractModel {
+public class Book extends BaseEntity {
 
 	private String name;
 	private String publishYear;

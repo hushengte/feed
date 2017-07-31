@@ -1,6 +1,5 @@
 package com.disciples.feed.service.manage;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,6 +16,7 @@ import com.disciples.feed.domain.Author;
 import com.disciples.feed.domain.Book;
 import com.disciples.feed.domain.BookAuthor;
 import com.disciples.feed.domain.Publisher;
+import com.disciples.feed.manage.ManageService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -25,11 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ManageServiceTest {
 
 	@Autowired
-	private PublisherManageService publisherManageService;
-	@Autowired
-	private BookManageService bookManageService;
-	@Autowired
-	private AuthorManageService authorManageService;
+	private ManageService manageService;
 	@Autowired
 	private BookAuthorDao bookAuthorDao;
 	@Autowired
@@ -37,15 +33,15 @@ public class ManageServiceTest {
 	
 	@Test
 	public void testFindBook() throws JsonProcessingException {
-		Publisher publisher = publisherManageService.save(new Publisher("InterVassy Press", "England"));
+		Publisher publisher = (Publisher) manageService.save(new Publisher("InterVassy Press", "England"));
 		
 		Book book = new Book();
 		book.setName("The mission of God");
 		book.setPublishYear("2006");
 		book.setPublisher(publisher);
-		bookManageService.save(book);
+		manageService.save(book);
 		
-		Page<Book> pageData = bookManageService.find(0, 10, null);
+		Page<Book> pageData = manageService.find(Book.class, 0, 10, null);
 		for (Book model : pageData.getContent()) {
 			System.out.println(objectMapper.writeValueAsString(model));
 		}
@@ -53,21 +49,21 @@ public class ManageServiceTest {
 	
 	@Test
 	public void testFindPublisher() throws JsonProcessingException {
-		Publisher publisher = publisherManageService.save(new Publisher("InterVassy Press", "England"));
+		Publisher publisher = (Publisher) manageService.save(new Publisher("InterVassy Press", "England"));
 		
 		Book book = new Book();
 		book.setName("The mission of God");
 		book.setPublishYear("2006");
 		book.setPublisher(publisher);
-		bookManageService.save(book);
+		manageService.save(book);
 		
 		Book book2 = new Book();
 		book.setName("The mission of God's people");
 		book.setPublishYear("2007");
 		book.setPublisher(publisher);
-		bookManageService.save(book2);
+		manageService.save(book2);
 		
-		Page<Publisher> pageData = publisherManageService.find(0, 10, null);
+		Page<Publisher> pageData = manageService.find(Publisher.class, 0, 10, null);
 		for (Publisher model : pageData.getContent()) {
 			System.out.println(objectMapper.writeValueAsString(model));
 		}
@@ -75,31 +71,31 @@ public class ManageServiceTest {
 	
 	@Test
 	public void testFindBookAuthors() throws JsonProcessingException {
-		Publisher publisher = publisherManageService.save(new Publisher("InterVassy Press", "England"));
+		Publisher publisher = (Publisher) manageService.save(new Publisher("InterVassy Press", "England"));
 		Set<Author> authors = new HashSet<Author>();
 		authors.add(new Author("Christopher J.H. Wright", "AUTHOR"));
 		authors.add(new Author("Unknown", "TRANSLATOR"));
-		authorManageService.getDao().save(authors);
+		manageService.save(authors);
 		
 		Book book = new Book();
 		book.setName("The mission of God");
 		book.setPublishYear("2006");
 		book.setPublisher(publisher);
-		bookManageService.save(book);
+		manageService.save(book);
 		
 		for (Author author : authors) {
 			bookAuthorDao.save(new BookAuthor(book, author));
 		}
 		
-		Page<Book> pageData = bookManageService.find(0, 10, Collections.<String, Object>singletonMap("option", publisher.getId()));
+		Page<Book> pageData = manageService.find(Book.class, 0, 10, null);
 		for (Book model : pageData.getContent()) {
 			System.out.println(objectMapper.writeValueAsString(model));
 		}
 		
 		System.out.println("=============================================");
-		Book model = bookManageService.getDao().findOne(book.getId());
-		Book dto = bookManageService.toDto(model);
-		System.out.println(objectMapper.writeValueAsString(dto));
+//		Book model = manageService.getDao().findOne(book.getId());
+//		Book dto = bookManageService.toDto(model);
+//		System.out.println(objectMapper.writeValueAsString(dto));
 	}
 	
 }

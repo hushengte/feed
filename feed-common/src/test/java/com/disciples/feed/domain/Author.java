@@ -8,13 +8,13 @@ import javax.persistence.NamedEntityGraph;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import com.disciples.feed.AbstractModel;
+import com.disciples.feed.BaseEntity;
 
 @SuppressWarnings("serial")
 @Entity
 @Table(name = "fc_author")
 @NamedEntityGraph(name = "Author.books", attributeNodes = @NamedAttributeNode("books"))
-public class Author extends AbstractModel {
+public class Author extends BaseEntity {
 
 	private String name;
 	private String level;

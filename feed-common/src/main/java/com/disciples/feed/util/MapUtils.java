@@ -1,4 +1,4 @@
-package com.disciples.feed.utils;
+package com.disciples.feed.util;
 
 import java.util.ArrayList;
 import java.util.Collections;
