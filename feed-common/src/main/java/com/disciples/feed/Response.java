@@ -31,10 +31,6 @@ public class Response<T> {
         return new Response<String>(CODE_ERROR, message, 0);
     }
     
-    public boolean isError() {
-        return code == CODE_ERROR;
-    }
-
     public int getCode() {
         return code;
     }

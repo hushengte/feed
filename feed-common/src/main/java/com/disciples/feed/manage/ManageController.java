@@ -37,21 +37,13 @@ public class ManageController {
 	
     @RequestMapping(value = BASE_URL + "/list", method = {RequestMethod.GET, RequestMethod.POST})
     public Object search(@PathVariable String repository, Integer page, Integer size, @RequestBody MultiValueMap<String, Object> params) {
-    	Class<?> domainClass = manageService.getDomainClass(repository);
-    	if (domainClass == null) {
-    		return Response.error(String.format("领域对象不存在：repository=%s", repository));
-    	}
-        Page<?> pageData = manageService.find(domainClass, page, size, params);
+        Page<?> pageData = manageService.find(manageService.getDomainClass(repository), page, size, params);
         return Response.success(pageData.getContent(), pageData.getTotalElements());
     }
     
     @RequestMapping(value = BASE_URL + "/getKeyValues", method = RequestMethod.GET)
     public Object getKeyValues(@PathVariable String repository) {
-    	Class<?> domainClass = manageService.getDomainClass(repository);
-    	if (domainClass == null) {
-    		return Response.error(String.format("领域对象不存在：repository=%s", repository));
-    	}
-        List<?> result = manageService.getKeyValues(domainClass);
+        List<?> result = manageService.getKeyValues(manageService.getDomainClass(repository));
         return Response.success(result, result.size());
     }
     
@@ -79,13 +71,13 @@ public class ManageController {
     
     @RequestMapping(value = BASE_URL + "/{id}", method = RequestMethod.DELETE)
     public Object delete(@PathVariable String repository, @PathVariable Integer id) {
-    	manageService.delete(repository, id, null);
+    	manageService.delete(manageService.getDomainClass(repository), id, null);
         return Response.success(true);
     }
     
     @RequestMapping(value = BASE_URL + "/delete", method = RequestMethod.POST)
     public Object deleteList(@PathVariable String repository, @RequestBody List<Map<String, Object>> dtoList) {
-        return Response.success(manageService.delete(repository, dtoList));
+        return Response.success(manageService.delete(manageService.getDomainClass(repository), dtoList));
     }
 
 }

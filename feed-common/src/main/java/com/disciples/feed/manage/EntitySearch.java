@@ -9,19 +9,13 @@ import org.springframework.util.MultiValueMap;
 
 public interface EntitySearch {
 
-	EntitySearch EMPTY = new EntitySearch() {
+	EntitySearch NULL = new EntitySearch() {
 		@Override
 		public Page<?> search(Class<?> domainClass, Pageable pageable, MultiValueMap<String, Object> params) {
 			return new PageImpl<Object>(Collections.emptyList(), pageable, 0);
 		}
-		@Override
-		public Page<?> afterSearch(Class<?> domainClass, Page<?> page) {
-			return page;
-		}
 	};
 
 	Page<?> search(Class<?> domainClass, Pageable pageable, MultiValueMap<String, Object> params);
-	
-	Page<?> afterSearch(Class<?> domainClass, Page<?> page);
 	
 }

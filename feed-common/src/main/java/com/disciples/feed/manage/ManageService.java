@@ -8,22 +8,24 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.MethodParameter;
-import org.springframework.core.convert.converter.Converter;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.mapping.PersistentEntity;
-import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.support.DefaultRepositoryInvokerFactory;
@@ -54,23 +56,26 @@ import com.disciples.feed.KeyValue;
 
 public class ManageService implements ApplicationContextAware, ApplicationEventPublisherAware {
 	
-	private static final String SPRING_DATA_JPA_MAPPING_CONTEXT_CLASS = "org.springframework.data.jpa.mapping.JpaMetamodelMappingContext";
+	private static final Logger LOG = LoggerFactory.getLogger(ManageService.class);
 	
 	private ApplicationEventPublisher publisher;
 	
-	private PersistentEntities persistentEntities;
 	private Repositories repositories;
 	private RepositoryInvokerFactory invokeFactory;
-	private List<MappingContext<?, ?>> mappingContexts;
 	private ResourceMappings resourceMappings;
-	
-	private MappingContext<?, ?> jpaMappingContext;
 	
 	private Map<String, Class<?>> repositoryClassMap = new ConcurrentHashMap<String, Class<?>>();
 	
 	private EntitySearch entitySearch;
 	
-	public ManageService() {}
+	public ManageService(PersistentEntities persistentEntities, Repositories repositories) {
+		Assert.notNull(persistentEntities, "PersistentEntities must not be null.");
+		Assert.notNull(repositories, "Repositories must not be null.");
+		
+		this.repositories = repositories;
+		this.invokeFactory = new DefaultRepositoryInvokerFactory(repositories, new DefaultFormattingConversionService());
+		this.resourceMappings = new RepositoryResourceMappings(repositories, persistentEntities, RepositoryDetectionStrategies.DEFAULT);
+	}
 	
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
@@ -79,21 +84,11 @@ public class ManageService implements ApplicationContextAware, ApplicationEventP
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.mappingContexts = new ArrayList<MappingContext<?, ?>>();
-		this.entitySearch = BeanFactoryUtils.beanOfType(applicationContext, EntitySearch.class);
-		if (this.entitySearch == null) {
-			this.entitySearch = EntitySearch.EMPTY;
+		try {
+			this.entitySearch = BeanFactoryUtils.beanOfTypeIncludingAncestors(applicationContext, EntitySearch.class);
+		} catch (NoSuchBeanDefinitionException e) {
+			this.entitySearch = EntitySearch.NULL;
 		}
-		for (MappingContext<?, ?> context : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, MappingContext.class).values()) {
-			if (SPRING_DATA_JPA_MAPPING_CONTEXT_CLASS.equals(context.getClass().getName())) {
-				jpaMappingContext = context;
-			}
-			mappingContexts.add(context);
-		}
-		this.persistentEntities = new PersistentEntities(mappingContexts);
-		this.repositories = new Repositories(applicationContext);
-		this.invokeFactory = new DefaultRepositoryInvokerFactory(repositories, new DefaultFormattingConversionService());
-		this.resourceMappings = new RepositoryResourceMappings(repositories, persistentEntities, RepositoryDetectionStrategies.DEFAULT);
 	}
 	
 	public Class<?> getDomainClass(String key) {
@@ -110,6 +105,8 @@ public class ManageService implements ApplicationContextAware, ApplicationEventP
     }
 	
 	public List<KeyValue> getKeyValues(Class<?> domainClass) {
+		Assert.notNull(domainClass, "实体类型不能为空");
+		
 		RepositoryInvoker invoker = invokeFactory.getInvokerFor(domainClass);
 		Iterable<Object> content = invoker.invokeFindAll((Pageable)null);
 		List<KeyValue> result = new ArrayList<KeyValue>();
@@ -126,56 +123,46 @@ public class ManageService implements ApplicationContextAware, ApplicationEventP
 	public Object save(Object object) {
 		Assert.notNull(object, "Object is required");
 		
-		Class<?> domainClass = object.getClass();
-		PersistentEntity<?, ?> persistentEntity = persistentEntities.getPersistentEntity(domainClass);
-		if (persistentEntity == null) {
-			throw new ManageException(String.format("Cannot save object of type %s.", domainClass.getName()));
-		}
-		
-		RepositoryInvoker invoker = invokeFactory.getInvokerFor(domainClass);
+		RepositoryInvoker invoker = invokeFactory.getInvokerFor(object.getClass());
 		publisher.publishEvent(new BeforeSaveEvent(object));
-		Object savedObject = invoker.invokeSave(object);
-		publisher.publishEvent(new AfterSaveEvent(object));
-		
-		if (jpaMappingContext != null) {
-			persistentEntity.doWithAssociations(new ProxyAssociationHandler(jpaMappingContext, savedObject));
+		Object savedObject = null;
+		try {
+			savedObject = invoker.invokeSave(object);
+		} catch (DataAccessException e) {
+			LOG.error(e.getMessage(), e);
+			throw new ManageException("保存失败");
 		}
+		publisher.publishEvent(new AfterSaveEvent(object));
 		return savedObject;
 	}
 	
-	public Object processAssociation(Object object) {
-		if (object != null && jpaMappingContext != null) {
-			Class<?> domainClass = object.getClass();
-			PersistentEntity<?, ?> persistentEntity = persistentEntities.getPersistentEntity(domainClass);
-			if (persistentEntity == null) {
-				throw new ManageException(String.format("Cannot save object of type %s.", domainClass.getName()));
-			}
-			persistentEntity.doWithAssociations(new ProxyAssociationHandler(jpaMappingContext, object));
-		}
-		return object;
-	}
-
 	@Transactional
-	public void delete(String repository, Integer id, Map<String, Object> dto) {
-		Class<?> domainClass = getDomainClass(repository);
-    	Assert.notNull(domainClass, String.format("领域对象不存在：repository=%s", repository));
+	public <T> void delete(Class<T> domainClass, Integer id, Map<String, Object> dto) {
+    	Assert.notNull(domainClass, "实体类型不能为空");
     	
     	RepositoryInvoker invoker = invokeFactory.getInvokerFor(domainClass);
     	if (id != null) {
     		Object object = invoker.invokeFindOne(id);
         	if (object != null) {
         		publisher.publishEvent(new BeforeDeleteEvent(object));
-        		invoker.invokeDelete(id);
+        		try {
+        			invoker.invokeDelete(id);
+        		} catch (DataIntegrityViolationException e) {
+        			throw new ManageException("删除失败：存在关联记录");
+        		} catch (DataAccessException e) {
+        			LOG.error(e.getMessage(), e);
+        			throw new ManageException("删除失败");
+        		}
         		publisher.publishEvent(new AfterDeleteEvent(object));
         	}
     	}
 	}
 
 	@Transactional
-	public int delete(String repository, List<Map<String, Object>> dtoList) {
+	public <T> int delete(Class<T> domainClass, List<Map<String, Object>> dtoList) {
 		Assert.notEmpty(dtoList, "dtoList cannot be emtpty.");
 		for (Map<String, Object> dto : dtoList) {
-			delete(repository, (Integer)dto.get("id"), dto);
+			delete(domainClass, (Integer)dto.get("id"), dto);
 		}
 		return dtoList.size();
 	}
@@ -186,6 +173,9 @@ public class ManageService implements ApplicationContextAware, ApplicationEventP
 	
 	@SuppressWarnings("unchecked")
 	public <T> Page<T> find(Class<T> domainClass, Integer page, Integer size, MultiValueMap<String, Object> params) {
+		Assert.notNull(domainClass, "实体类型不能为空");
+		
+		params = params == null ? new LinkedMultiValueMap<String, Object>() : params;
 		Pageable pageable = page != null ? new PageRequest(page, size) : null;
 		RepositoryInvoker invoker = invokeFactory.getInvokerFor(domainClass);
 		
@@ -212,17 +202,7 @@ public class ManageService implements ApplicationContextAware, ApplicationEventP
 				pageData = (Page<T>) invoker.invokeFindAll(pageable);
 			}
 		}
-		final PersistentEntity<?, ?> persistentEntity = persistentEntities.getPersistentEntity(domainClass);
-		if (persistentEntity != null && jpaMappingContext != null) {
-			return (Page<T>) entitySearch.afterSearch(domainClass, pageData.map(new Converter<T, T>() {
-				@Override
-				public T convert(T source) {
-					persistentEntity.doWithAssociations(new ProxyAssociationHandler(jpaMappingContext, source));
-					return source;
-				}
-			}));
-		}
-		return (Page<T>) entitySearch.afterSearch(domainClass, pageData);
+		return pageData;
 	}
 
 	private Object invokeQueryMethod(Method method, RepositoryInvoker invoker, Pageable pageable, MultiValueMap<String, Object> params) {

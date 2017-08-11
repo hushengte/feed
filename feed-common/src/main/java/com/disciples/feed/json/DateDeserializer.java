@@ -1,4 +1,4 @@
-package com.disciples.feed;
+package com.disciples.feed.json;
 
 import java.io.IOException;
 import java.util.Date;
