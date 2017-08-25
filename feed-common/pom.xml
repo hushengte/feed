@@ -19,6 +19,8 @@
 		<slf4j.log4j12.version>1.7.10</slf4j.log4j12.version>
 		
 		<hibernate.version>4.3.9.Final</hibernate.version>
+		<hibernate.search.version>5.2.0.Final</hibernate.search.version>
+		<lucene.version>4.10.4</lucene.version>
 		
 		<github.global.server>github</github.global.server>
 	</properties>
@@ -108,6 +110,26 @@
 			<version>${hibernate.version}</version>
 			<optional>true</optional>
 		</dependency>
+		<!-- Hibernate Search-->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-search-orm</artifactId>
+			<version>${hibernate.search.version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+		  	<groupId>org.apache.lucene</groupId>
+		  	<artifactId>lucene-highlighter</artifactId>
+		  	<version>${lucene.version}</version>
+		  	<optional>true</optional>
+		</dependency>
+		<!-- maven install from https://github.com/piaolingxue/ik-analyzer.git -->
+	    <dependency>
+	    	<groupId>org.wltea</groupId>
+			<artifactId>ik-analyzer</artifactId>
+			<version>${lucene.version}</version>
+			<optional>true</optional>
+	    </dependency>
 		
 		<!-- Test scope -->
 		<dependency>
