@@ -12,7 +12,7 @@ public interface FullTextService {
 	 * @param query 查询请求
 	 * @return 结果集
 	 */
-	<T> Page<T> query(Class<T> docClass, FullTextQuery query);
+	<T> Page<T> query(FullTextQuery<T> query);
 	
 	/**
 	 * 重建索引

@@ -20,11 +20,11 @@ import org.springframework.util.StringUtils;
  * 全文检索查询对象
  * @param <T> 文档类
  */
-public class FullTextQuery {
+public class FullTextQuery<T> {
 	
 	private static final int DEFAULT_MAX_RESULTS = 10;
 	/** 文档类  */
-	private Class<?> docClass;
+	private Class<T> docClass;
 	/** 关键字 */
 	private String keyword;
 	/** 查询域 */
@@ -40,17 +40,17 @@ public class FullTextQuery {
 	/** 高亮标记 */
 	private boolean highlight;
 
-	private FullTextQuery(Class<?> docClass, String keyword) {
+	private FullTextQuery(Class<T> docClass, String keyword) {
 		Assert.notNull(docClass, "docClass must not be null.");
 		this.docClass = docClass;
 		this.keyword = keyword;
 	}
 	
-	public static <T> FullTextQuery create(Class<?> docClass, String keyword) {
-		return new FullTextQuery(docClass, keyword);
+	public static <T> FullTextQuery<T> create(Class<T> docClass, String keyword) {
+		return new FullTextQuery<T>(docClass, keyword);
 	}
 	
-	public FullTextQuery withFields(String... fields) {
+	public FullTextQuery<T> withFields(String... fields) {
 		Assert.notEmpty(fields, "fields must not be empty");
 		this.fields = new ArrayList<String>();
 		for (String field : fields) {
@@ -61,7 +61,7 @@ public class FullTextQuery {
 		return this;
 	}
 	
-	public FullTextQuery addProjections(String... projections) {
+	public FullTextQuery<T> addProjections(String... projections) {
 		if (this.projections == null) {
 			this.projections = new ArrayList<String>();
 		}
@@ -85,7 +85,7 @@ public class FullTextQuery {
 		return field != null && AnnotationUtils.getAnnotation(field, ManyToOne.class) != null;
 	}
 	
-	public FullTextQuery withAssociations(String... associations) {
+	public FullTextQuery<T> withAssociations(String... associations) {
 		List<String> associationList = associations != null ? Arrays.asList(associations) : Collections.<String>emptyList();
 		this.associations = new ArrayList<String>();
 		for (String association : associationList) {
@@ -96,22 +96,22 @@ public class FullTextQuery {
 		return this;
 	}
 	
-	public FullTextQuery setPageRequest(Pageable pageable) {
+	public FullTextQuery<T> setPageRequest(Pageable pageable) {
 		this.pageable = pageable;
 		return this;
 	}
 	
-	public FullTextQuery setMaxResults(int maxResults) {
+	public FullTextQuery<T> setMaxResults(int maxResults) {
 		this.maxResults = maxResults > 0 ? maxResults : DEFAULT_MAX_RESULTS;
 		return this;
 	}
 	
-	public FullTextQuery setHighlight(boolean highlight) {
+	public FullTextQuery<T> setHighlight(boolean highlight) {
 		this.highlight = highlight;
 		return this;
 	}
 
-	public Class<?> getDocClass() {
+	public Class<T> getDocClass() {
 		return docClass;
 	}
 

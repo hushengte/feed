@@ -68,11 +68,10 @@ public class HibernateSearchService implements FullTextService {
     
     @Override
     @SuppressWarnings("unchecked")
-	public <T> Page<T> query(Class<T> docClass, FullTextQuery query) {
-    	Assert.notNull(docClass, "docClass must not be null.");
+	public <T> Page<T> query(FullTextQuery<T> query) {
     	Assert.notNull(query, "query must not be null.");
-    	Assert.isTrue(docClass == query.getDocClass(), "docClass must be same as docClass in query.");
-    	
+
+    	Class<T> docClass = query.getDocClass();
     	String keyword = query.getKeyword();
     	List<String> fields = query.getFields();
     	if (!StringUtils.hasText(keyword) || CollectionUtils.isEmpty(fields)) {
