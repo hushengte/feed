@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.disciples.feed.Response;
 
@@ -42,8 +43,8 @@ public class ManageController {
     }
     
     @RequestMapping(value = BASE_URL + "/getKeyValues", method = RequestMethod.GET)
-    public Object getKeyValues(@PathVariable String repository) {
-        List<?> result = manageService.getKeyValues(manageService.getDomainClass(repository));
+    public Object getKeyValues(@PathVariable String repository, @RequestParam(required = false) String method) {
+        List<?> result = manageService.getKeyValues(manageService.getDomainClass(repository), method);
         return Response.success(result, result.size());
     }
     

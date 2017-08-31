@@ -1,7 +1,6 @@
 package com.disciples.feed.manage;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -10,9 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
@@ -51,8 +48,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
-
-import com.disciples.feed.KeyValue;
 
 public class ManageService implements ApplicationContextAware, ApplicationEventPublisherAware {
 	
@@ -104,19 +99,17 @@ public class ManageService implements ApplicationContextAware, ApplicationEventP
     	return clazz;
     }
 	
-	public List<KeyValue> getKeyValues(Class<?> domainClass) {
+	@SuppressWarnings("unchecked")
+	public List<Map<String, Object>> getKeyValues(Class<?> domainClass, String methodText) {
 		Assert.notNull(domainClass, "实体类型不能为空");
 		
 		RepositoryInvoker invoker = invokeFactory.getInvokerFor(domainClass);
-		Iterable<Object> content = invoker.invokeFindAll((Pageable)null);
-		List<KeyValue> result = new ArrayList<KeyValue>();
-		for (Object obj : content) {
-			BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(obj);
-			Object key = bw.getPropertyValue("id");
-			String value = (String) bw.getPropertyValue("name");
-			result.add(new KeyValue(key, value));
+		SearchResourceMappings srm = resourceMappings.getSearchResourceMappings(domainClass);
+		Method method = srm.getMappedMethod(StringUtils.hasText(methodText) ? methodText : "getKeyValues");
+		if (method == null) {
+			return Collections.emptyList();
 		}
-		return result;
+		return (List<Map<String, Object>>) invokeQueryMethod(method, invoker, null, new LinkedMultiValueMap<String, Object>(0));
 	}
 	
 	@Transactional
