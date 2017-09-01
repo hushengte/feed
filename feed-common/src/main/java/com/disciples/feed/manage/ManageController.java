@@ -37,7 +37,7 @@ public class ManageController {
 	}
 	
     @RequestMapping(value = BASE_URL + "/list", method = {RequestMethod.GET, RequestMethod.POST})
-    public Object search(@PathVariable String repository, Integer page, Integer size, @RequestBody MultiValueMap<String, Object> params) {
+    public Object search(@PathVariable String repository, Integer page, Integer size, @RequestBody(required = false) MultiValueMap<String, Object> params) {
         Page<?> pageData = manageService.find(manageService.getDomainClass(repository), page, size, params);
         return Response.success(pageData.getContent(), pageData.getTotalElements());
     }
