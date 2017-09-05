@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.PropertyAccessorFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -28,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.repository.query.Param;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -45,7 +45,7 @@ import org.springframework.util.StringUtils;
  * 4.SQL生成逻辑抽离
  * 
  * 实现基本的 CRUD 操作
- * @author 001760
+ * 
  * @param <T> 实体类
  * @param <ID> 实体类主键
  */
@@ -86,10 +86,6 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         this.tableName = tableName;
     }
     
-    /**
-     * 构建SQL占位符
-     * @return "(?,?, ..., ?)"
-     */
     protected String buildPlaceholders(Iterable<?> iterable) {
         Iterator<?> it = iterable.iterator();
         if (!it.hasNext()) {
@@ -103,12 +99,6 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         return placeholderSb.deleteCharAt(placeholderSb.length() - 1).append(')').toString();
     }
     
-    /**
-     * 追加 order by 子句
-     * @param query 原始语句
-     * @param sort 排序条件
-     * @return 带排序功能的查询
-     */
     protected String appendOrderBy(String query, Sort sort) {
     	Assert.notNull(query, "'query' can't be empty");
         StringBuilder sb = new StringBuilder(query);
@@ -122,12 +112,6 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         return sb.toString();
     }
     
-    /**
-     * 追加 limit 子句
-     * @param query 原始语句
-     * @param pageable pageable 分布规则
-     * @return 带分页功能的查询
-     */
     protected String appendPaging(String query, Pageable pageable) {
     	Assert.notNull(query, "'query' can't be empty");
         StringBuilder sb = new StringBuilder(query);
@@ -137,11 +121,6 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         return sb.toString();
     }
     
-    /**
-     * 追加where子句
-     * @param query 原始查询
-     * @param condition 查询条件, 例如: columnName1 = ? and columnName2 = ? or columnName3 < ?
-     */
     protected String appendWhereClause(String query, String condition) {
         Assert.notNull(query, "'query' can't be empty");
         StringBuilder sb = new StringBuilder(query);
@@ -165,6 +144,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         return sb.toString();
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.repository.CrudRepository#save(S)
+     */
     @SuppressWarnings("unchecked")
     @Override
     public <S extends T> S save(S entity) {
@@ -216,6 +199,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         }
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.repository.CrudRepository#save(java.lang.Iterable)
+     */
     @Override
 	public <S extends T> Iterable<S> save(Iterable<S> entities) {
 		Assert.notNull(entities, "The given entities must not be null.");
@@ -225,6 +212,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
 		return entities;
 	}
     
+    /*
+     * (non-Javadoc)
+     * @see com.disciples.feed.repository.JdbcRepository#updateById(java.io.Serializable, java.util.Map)
+     */
     @Override
     public boolean updateById(ID id, Map<String, Object> columnArgs) {
         Assert.notNull(columnArgs, "The given values must not be null.");
@@ -245,6 +236,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         return jdbcTemplate.update(sql, args) > 0;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.repository.CrudRepository#exists(java.io.Serializable)
+     */
     @Override
     public boolean exists(ID id) {
         Assert.notNull(id, "The given id must not be null!");
@@ -254,6 +249,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         return count != null && count > 0;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.repository.CrudRepository#count()
+     */
     @Override
     public long count() {
         String sql = String.format(QUERY_COUNT_ALL, tableName);
@@ -261,6 +260,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         return jdbcTemplate.queryForObject(sql, Long.class);
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.repository.CrudRepository#findAll()
+     */
     @Override
     public List<T> findAll() {
         String sql = String.format(QUERY_ALL, tableName);
@@ -268,6 +271,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         return jdbcTemplate.query(sql, mappingContext);
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.repository.PagingAndSortingRepository#findAll(org.springframework.data.domain.Sort)
+     */
     @Override
     public List<T> findAll(Sort sort) {
         String sql = String.format(appendOrderBy(QUERY_ALL, sort), tableName);
@@ -275,6 +282,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         return jdbcTemplate.query(sql, mappingContext);
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.repository.PagingAndSortingRepository#findAll(org.springframework.data.domain.Pageable)
+     */
     @Override
     public Page<T> findAll(Pageable pageable) {
     	if (pageable == null) {
@@ -291,6 +302,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         return new PageImpl<T>(contents, pageable, total);
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.repository.CrudRepository#findOne(java.io.Serializable)
+     */
     @Override
     public T findOne(ID id) {
         Assert.notNull(id, "The given id must not be null!");
@@ -303,6 +318,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         return resultList.get(0);
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.repository.CrudRepository#findAll(java.lang.Iterable)
+     */
     @Override
     public List<T> findAll(Iterable<ID> ids) {
         Assert.notNull(ids, "The given ids must not be null.");
@@ -315,11 +334,19 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         return jdbcTemplate.query(sql, args.toArray(), mappingContext);
     }
 
+    /*
+     * (non-Javadoc)
+     * @see com.disciples.feed.repository.JdbcRepository#findBy(java.lang.String, java.lang.Object[])
+     */
     @Override
     public List<T> findBy(String condition, Object... args) {
         return findBy(condition, (Sort)null, args);
     }
 
+    /*
+     * (non-Javadoc)
+     * @see com.disciples.feed.repository.JdbcRepository#findBy(java.lang.String, org.springframework.data.domain.Sort, java.lang.Object[])
+     */
     @Override
     public List<T> findBy(String condition, Sort sort, Object... args) {
         Assert.notNull(condition, "The given condition must not be null.");
@@ -333,6 +360,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
     	return jdbcTemplate.query(sql, mappingContext, args);
     }
 
+    /*
+     * (non-Javadoc)
+     * @see com.disciples.feed.repository.JdbcRepository#findBy(java.lang.String, org.springframework.data.domain.Pageable, java.lang.Object[])
+     */
     @Override
     public Page<T> findBy(String condition, Pageable pageable, Object... args) {
         Assert.notNull(condition, "The given condition must not be null.");
@@ -349,6 +380,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         return new PageImpl<T>(contents, pageable, total);
     }
 
+    /*
+     * (non-Javadoc)
+     * @see com.disciples.feed.repository.JdbcRepository#findOneBy(java.lang.String, java.lang.Object[])
+     */
     @Override
     public T findOneBy(String condition, Object... args) {
         List<T> result = findBy(condition, args);
@@ -358,6 +393,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         return null;
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.repository.CrudRepository#delete(java.io.Serializable)
+     */
     @Override
     public void delete(ID id) {
         Assert.notNull(id, "The given id must not be null!");
@@ -366,12 +405,20 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         jdbcTemplate.update(sql, id);
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Object)
+     */
     @Override
     public void delete(T entity) {
         Assert.notNull(entity, "The entity must not be null!");
         delete(entity.getId());
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Iterable)
+     */
     @Override
     public void delete(Iterable<? extends T> entities) {
         Assert.notNull(entities, "The given Iterable of entities not be null!");
@@ -384,6 +431,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         jdbcTemplate.update(sql, idList.toArray());
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.data.repository.CrudRepository#deleteAll()
+     */
     @Override
     public void deleteAll() {
         String sql = String.format(DELETE_ALL, tableName);
@@ -443,8 +494,7 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         		return;
         	}
 			String propertyName = field.getName();
-			//TODO: FIXME
-			Value value = field.getAnnotation(Value.class);
+			Param value = field.getAnnotation(Param.class);
             String columnName = value == null ? underscoreName(propertyName) : value.value();
             propertyList.add(propertyName);
             columnList.add(columnName);

@@ -17,27 +17,29 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * 全文检索查询对象
- * @param <T> 文档类
+ * Full-text query object.
+ * @param <T> the type of the class which can be indexed.
+ * 
+ * @see com.disciples.feed.fulltext.FullTextService
  */
 public class FullTextQuery<T> {
 	
 	private static final int DEFAULT_MAX_RESULTS = 10;
-	/** 文档类  */
+	/** Indexed doc class  */
 	private Class<T> docClass;
-	/** 关键字 */
+	/** Search keyword */
 	private String keyword;
-	/** 查询域 */
+	/** Search fields */
 	private List<String> fields;
-	/** 存储域 */
+	/** Stored fields */
 	private List<String> projections;
-	/** 关联字段 */
+	/** Association paths */
 	private List<String> associations;
-	/** 分页请求 */
+	/** Page request */
 	private Pageable pageable;
-	/** 最大返回结果数：当pageable为null时起作用 */
+	/** Max returned results: when pageable is null, this field is effect */
 	private int maxResults = DEFAULT_MAX_RESULTS;
-	/** 高亮标记 */
+	/** Flag of highlight */
 	private boolean highlight;
 
 	private FullTextQuery(Class<T> docClass, String keyword) {

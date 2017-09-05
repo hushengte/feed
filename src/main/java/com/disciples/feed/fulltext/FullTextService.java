@@ -9,6 +9,7 @@ public interface FullTextService {
 	
 	/**
 	 * 查询文档
+	 * @param <T> 文档类
 	 * @param query 查询请求
 	 * @return 结果集
 	 */
