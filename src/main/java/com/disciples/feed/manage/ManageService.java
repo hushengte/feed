@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.persistence.PersistenceException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -17,8 +19,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.MethodParameter;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -118,15 +118,14 @@ public class ManageService implements ApplicationContextAware, ApplicationEventP
 		
 		RepositoryInvoker invoker = invokeFactory.getInvokerFor(object.getClass());
 		publisher.publishEvent(new BeforeSaveEvent(object));
-		Object savedObject = null;
 		try {
-			savedObject = invoker.invokeSave(object);
-		} catch (DataAccessException e) {
+			invoker.invokeSave(object);
+		} catch (PersistenceException e) {
 			LOG.error(e.getMessage(), e);
 			throw new ManageException("保存失败");
 		}
 		publisher.publishEvent(new AfterSaveEvent(object));
-		return savedObject;
+		return object;
 	}
 	
 	@Transactional
@@ -138,14 +137,7 @@ public class ManageService implements ApplicationContextAware, ApplicationEventP
     		Object object = invoker.invokeFindOne(id);
         	if (object != null) {
         		publisher.publishEvent(new BeforeDeleteEvent(object));
-        		try {
-        			invoker.invokeDelete(id);
-        		} catch (DataIntegrityViolationException e) {
-        			throw new ManageException("删除失败：存在关联记录");
-        		} catch (DataAccessException e) {
-        			LOG.error(e.getMessage(), e);
-        			throw new ManageException("删除失败");
-        		}
+        		invoker.invokeDelete(id);
         		publisher.publishEvent(new AfterDeleteEvent(object));
         	}
     	}

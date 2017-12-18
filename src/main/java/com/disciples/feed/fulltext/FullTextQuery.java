@@ -5,7 +5,9 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.ManyToOne;
 
@@ -32,9 +34,9 @@ public class FullTextQuery<T> {
 	/** Search fields */
 	private List<String> fields;
 	/** Stored fields */
-	private List<String> projections;
+	private Set<String> projections;
 	/** Association paths */
-	private List<String> associations;
+	private Set<String> associations;
 	/** Page request */
 	private Pageable pageable;
 	/** Max returned results: when pageable is null, this field is effect */
@@ -65,7 +67,7 @@ public class FullTextQuery<T> {
 	
 	public FullTextQuery<T> addProjections(String... projections) {
 		if (this.projections == null) {
-			this.projections = new ArrayList<String>();
+			this.projections = new HashSet<String>();
 		}
 		if (projections != null) {
 			for (String projection : projections) {
@@ -89,7 +91,7 @@ public class FullTextQuery<T> {
 	
 	public FullTextQuery<T> withAssociations(String... associations) {
 		List<String> associationList = associations != null ? Arrays.asList(associations) : Collections.<String>emptyList();
-		this.associations = new ArrayList<String>();
+		this.associations = new HashSet<String>();
 		for (String association : associationList) {
 			if (validate(association)) {
 				this.associations.add(association);
@@ -125,11 +127,11 @@ public class FullTextQuery<T> {
 		return fields;
 	}
 
-	public List<String> getProjections() {
+	public Set<String> getProjections() {
 		return projections;
 	}
 
-	public List<String> getAssociations() {
+	public Set<String> getAssociations() {
 		return associations;
 	}
 

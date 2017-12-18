@@ -7,6 +7,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -72,13 +74,25 @@ public class ManageController {
     
     @RequestMapping(value = BASE_URL + "/{id}", method = RequestMethod.DELETE)
     public Object delete(@PathVariable String repository, @PathVariable Integer id) {
-    	manageService.delete(manageService.getDomainClass(repository), id, null);
-        return Response.success(true);
+    	try {
+    		manageService.delete(manageService.getDomainClass(repository), id, null);
+    		return Response.success(true);
+    	} catch (DataIntegrityViolationException e) {
+			return Response.error("删除失败：请先删除关联数据再操作");
+		} catch (DataAccessException e) {
+			return Response.error("删除失败：" + e.getMessage());
+		}
     }
     
     @RequestMapping(value = BASE_URL + "/delete", method = RequestMethod.POST)
     public Object deleteList(@PathVariable String repository, @RequestBody List<Map<String, Object>> dtoList) {
-        return Response.success(manageService.delete(manageService.getDomainClass(repository), dtoList));
+    	try {
+    		return Response.success(manageService.delete(manageService.getDomainClass(repository), dtoList));
+    	} catch (DataIntegrityViolationException e) {
+    		return Response.error("删除失败：请先删除关联数据再操作");
+		} catch (DataAccessException e) {
+			return Response.error("删除失败：" + e.getMessage());
+		}
     }
 
 }

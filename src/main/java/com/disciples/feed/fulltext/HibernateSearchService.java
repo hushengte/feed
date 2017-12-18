@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -39,7 +40,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
 import org.springframework.util.StringUtils;
-import org.wltea.analyzer.lucene.IKAnalyzer;
 
 public class HibernateSearchService implements FullTextService {
 
@@ -49,8 +49,6 @@ public class HibernateSearchService implements FullTextService {
     private static final int BATCH_SIZE = 1000;
     
     private EntityManagerFactory entityManagerFactory;
-    
-    private Analyzer analyzer = new IKAnalyzer();
     private SimpleHTMLFormatter formatter = new SimpleHTMLFormatter("<b><font color='red'>", "</font></b>");
     
     public HibernateSearchService(EntityManagerFactory entityManagerFactory) {
@@ -58,7 +56,7 @@ public class HibernateSearchService implements FullTextService {
     	this.entityManagerFactory = entityManagerFactory;
     }
 
-    private TermMatchingContext buildTermMatchContext(QueryBuilder qb, List<String> fields) {
+	private TermMatchingContext buildTermMatchContext(QueryBuilder qb, List<String> fields) {
     	TermMatchingContext termMatchContext = qb.keyword().onField(fields.get(0)).boostedTo(MAX_BOOST);
         for (int i = 1; i < fields.size(); i++) {
         	termMatchContext = termMatchContext.andField(fields.get(i)).boostedTo(MAX_BOOST - (i * 1.0f) / fields.size());
@@ -82,7 +80,8 @@ public class HibernateSearchService implements FullTextService {
     		FullTextEntityManager fullTextEm = Search.getFullTextEntityManager(entityManager);
     		QueryBuilder qb = fullTextEm.getSearchFactory().buildQueryBuilder().forEntity(docClass).get();
     		//创建查询
-    		Query localQuery = buildTermMatchContext(qb, fields).matching(keyword).createQuery();
+    		TermMatchingContext tmc = buildTermMatchContext(qb, fields);
+    		Query localQuery = tmc.matching(keyword).createQuery();
     		org.hibernate.search.jpa.FullTextQuery fullTextQuery = fullTextEm.createFullTextQuery(localQuery, docClass);
     		//设置分页
     		Pageable pageable = query.getPageable();
@@ -97,9 +96,9 @@ public class HibernateSearchService implements FullTextService {
             	return new PageImpl<T>(Collections.<T>emptyList(), null, 0);
             }
     		//抓取数据
-            List<String> projections = query.getProjections();
+            Set<String> projections = query.getProjections();
             if (CollectionUtils.isEmpty(projections)) { //从数据库抓取
-            	List<String> associations = query.getAssociations();
+            	Set<String> associations = query.getAssociations();
             	if (!CollectionUtils.isEmpty(associations)) {
             		Session session = (Session)fullTextEm.getDelegate();
                 	Criteria rootCriteria = session.createCriteria(docClass);
@@ -114,8 +113,9 @@ public class HibernateSearchService implements FullTextService {
             }
 			List<T> content = (List<T>)fullTextQuery.getResultList();
     		if (query.isHighlight()) {
+    			Analyzer analyzer = fullTextEm.getSearchFactory().getAnalyzer(docClass);
     			Highlighter highlighter = new Highlighter(formatter, new QueryScorer(localQuery));
-    			doHighlight(docClass, highlighter, content, fields);
+    			doHighlight(docClass, analyzer, highlighter, content, fields);
     		}
     		return new PageImpl<T>(content, null, total);
     	} finally {
@@ -123,7 +123,7 @@ public class HibernateSearchService implements FullTextService {
     	}
 	}
     
-    private void doHighlight(Class<?> docClass, Highlighter highlighter, List<?> content, List<String> fields) {
+    private void doHighlight(Class<?> docClass, Analyzer analyzer, Highlighter highlighter, List<?> content, List<String> fields) {
     	for (Object data : content) {
 			BeanWrapper dataBw = PropertyAccessorFactory.forBeanPropertyAccess(data);
 			for (String fieldName : fields) {

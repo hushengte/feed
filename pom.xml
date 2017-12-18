@@ -52,14 +52,14 @@
 		<spring.data.jpa.version>1.10.1.RELEASE</spring.data.jpa.version>
 		<spring.data.rest.version>2.5.3.RELEASE</spring.data.rest.version>
 		
+		<hikari.version>2.4.9</hikari.version>
+		
 		<jackson.version>2.6.5</jackson.version>
 		<slf4j.log4j12.version>1.7.10</slf4j.log4j12.version>
 		
 		<hibernate.version>4.3.9.Final</hibernate.version>
 		<hibernate.search.version>5.2.0.Final</hibernate.search.version>
 		<lucene.version>4.10.4</lucene.version>
-		
-		<github.global.server>github</github.global.server>
 	</properties>
 	
 	<dependencies>
@@ -69,6 +69,17 @@
 			<version>3.1.0</version>
 			<scope>provided</scope>
 			<optional>true</optional>
+		</dependency>
+		
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.39</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.zaxxer</groupId>
+		    <artifactId>HikariCP-java7</artifactId>
+		    <version>${hikari.version}</version>
 		</dependency>
 		
 		<dependency>
