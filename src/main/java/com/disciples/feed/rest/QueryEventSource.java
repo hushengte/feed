@@ -1,4 +1,4 @@
-package com.disciples.feed.rest.event;
+package com.disciples.feed.rest;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

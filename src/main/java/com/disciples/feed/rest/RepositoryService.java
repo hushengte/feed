@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -28,9 +30,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
-import com.disciples.feed.rest.event.QueryEventSource;
-import com.disciples.feed.rest.event.RepositoryEvent;
-import com.disciples.feed.rest.event.RepositoryEvent.Type;
+import com.disciples.feed.rest.RepositoryEvent.Type;
 
 public class RepositoryService implements ApplicationEventPublisherAware {
 	
@@ -74,10 +74,7 @@ public class RepositoryService implements ApplicationEventPublisherAware {
     }
 	
 	@Transactional
-	public Object save(Object object) {
-		Assert.notNull(object, "Object is required");
-		
-		RepositoryInvoker invoker = invokeFactory.getInvokerFor(object.getClass());
+	protected Object doSave(RepositoryInvoker invoker, Object object) {
 		publisher.publishEvent(new RepositoryEvent(object, Type.BEFORE_SAVE));
 		try {
 			invoker.invokeSave(object);
@@ -89,28 +86,48 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 		return object;
 	}
 	
+	public Object save(Object object) {
+		Assert.notNull(object, "Object is required");
+		RepositoryInvoker invoker = invokeFactory.getInvokerFor(object.getClass());
+		try {
+			return doSave(invoker, object);
+		} catch (DataAccessException e) {
+			throw new RepositoryException("保存失败：" + e.getMessage());
+		}
+	}
+	
 	@Transactional
-	public <T> void delete(Class<T> domainClass, Integer id, Map<String, Object> dto) {
-    	Assert.notNull(domainClass, "实体类型不能为空");
-    	
-    	RepositoryInvoker invoker = invokeFactory.getInvokerFor(domainClass);
-    	if (id != null) {
-    		Object object = invoker.invokeFindOne(id);
-        	if (object != null) {
-        		publisher.publishEvent(new RepositoryEvent(object, Type.BEFORE_DELETE));
-        		invoker.invokeDelete(id);
-        		publisher.publishEvent(new RepositoryEvent(object, Type.AFTER_DELETE));
-        	}
-    	}
+	protected void doDelete(RepositoryInvoker invoker, List<Map<String, Object>> dataList) {
+		for (Map<String, Object> data : dataList) {
+			Integer id = (Integer)data.get("id");
+			if (id != null) {
+	    		Object object = invoker.invokeFindOne(id);
+	        	if (object != null) {
+	        		publisher.publishEvent(new RepositoryEvent(object, Type.BEFORE_DELETE));
+	        		invoker.invokeDelete(id);
+	        		publisher.publishEvent(new RepositoryEvent(object, Type.AFTER_DELETE));
+	        	}
+	    	}
+		}
+	}
+	
+	public <T> void delete(Class<T> domainClass, Integer id) {
+    	delete(domainClass, Collections.singletonList(Collections.<String, Object>singletonMap("id", id)));
 	}
 
-	@Transactional
-	public <T> int delete(Class<T> domainClass, List<Map<String, Object>> dtoList) {
-		Assert.notEmpty(dtoList, "dtoList cannot be emtpty.");
-		for (Map<String, Object> dto : dtoList) {
-			delete(domainClass, (Integer)dto.get("id"), dto);
+	public <T> int delete(Class<T> domainClass, List<Map<String, Object>> dataList) {
+		Assert.notNull(domainClass, "实体类型不能为空");
+		Assert.notEmpty(dataList, "dataList cannot be emtpty.");
+		RepositoryInvoker invoker = invokeFactory.getInvokerFor(domainClass);
+		try {
+			doDelete(invoker, dataList);
+			return dataList.size();
+		} catch (DataIntegrityViolationException e) {
+			throw new RepositoryException("删除失败：请先删除关联数据再操作");
+		} catch (DataAccessException e) {
+			LOG.error(e.getMessage(), e);
+			throw new RepositoryException("删除失败：" + e.getMessage());
 		}
-		return dtoList.size();
 	}
 	
 	private Method getMappedMethod(Class<?> domainClass, String methodName) {

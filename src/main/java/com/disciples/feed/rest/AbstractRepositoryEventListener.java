@@ -1,4 +1,4 @@
-package com.disciples.feed.rest.event;
+package com.disciples.feed.rest;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.GenericTypeResolver;
@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.MultiValueMap;
 
-import com.disciples.feed.rest.event.RepositoryEvent.Type;
+import com.disciples.feed.rest.RepositoryEvent.Type;
 
 /**
  * Abstract class that listens for generic {@link RepositoryEvent}s and dispatches them to a specific method based on the event type.

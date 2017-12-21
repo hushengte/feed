@@ -1,4 +1,6 @@
-package com.disciples.feed.service.manage;
+package com.disciples.feed.service;
+
+import java.util.Collections;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,6 +14,7 @@ import com.disciples.feed.config.RepositoryRestConfiguration;
 import com.disciples.feed.config.ServiceConfig;
 import com.disciples.feed.domain.Book;
 import com.disciples.feed.domain.Publisher;
+import com.disciples.feed.rest.RepositoryException;
 import com.disciples.feed.rest.RepositoryService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -73,6 +76,16 @@ public class RepositoryServiceTest {
 		params.add("method", "findByNameContaining");
 		params.add("keyword", "生活");
 		print(repositoryService.find(Publisher.class, 0, 10, params));
+	}
+	
+	@Test(expected = RepositoryException.class)
+	public void testDeleteHandleException() {
+		repositoryService.delete(Publisher.class, Collections.singletonList(Collections.<String, Object>singletonMap("id", 15)));
+	}
+	
+	@Test(expected = RepositoryException.class)
+	public void testSaveHandleException() {
+		repositoryService.save(new Publisher("Test"));
 	}
 	
 }

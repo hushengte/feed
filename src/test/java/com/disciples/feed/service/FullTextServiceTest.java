@@ -1,4 +1,4 @@
-package com.disciples.feed.service.manage;
+package com.disciples.feed.service;
 
 import java.io.IOException;
 import java.io.Reader;
