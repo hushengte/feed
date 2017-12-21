@@ -20,9 +20,8 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import com.disciples.feed.annotation.EnableFullText;
 import com.disciples.feed.domain.Book;
-import com.disciples.feed.fulltext.FullTextService;
-import com.disciples.feed.fulltext.HibernateSearchService;
 import com.disciples.feed.repository.DefaultJpaRepository;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -31,6 +30,7 @@ import com.zaxxer.hikari.HikariDataSource;
 @ComponentScan("com.disciples.feed.service")
 @EnableJpaRepositories(basePackages = "com.disciples.feed.dao", repositoryBaseClass = DefaultJpaRepository.class)
 @EnableTransactionManagement(proxyTargetClass = true)
+@EnableFullText
 public class ServiceConfig {
 	
 //    @Bean
@@ -77,10 +77,5 @@ public class ServiceConfig {
         transactionManager.setEntityManagerFactory(entityManagerFactory());
         return transactionManager;
     }
-	
-	@Bean
-	public FullTextService fullTextService() {
-		return new HibernateSearchService(entityManagerFactory());
-	}
 	
 }

@@ -47,10 +47,9 @@ public class FullTextServiceTest {
 	}
 	
 	@Test
-	public void testAnalyzer() {
+	public void testAuthorAnalyzer() {
 		System.out.println(analyzer("author", "[{\"names\":[\"麦克奈特(Scot McKnight)\"],\"level\":\"著\"},{\"names\":[\"麦启新等\",\"麦陈惠惠\"],\"level\":\"译\"}]"));
 		System.out.println(analyzer("author", "[{\"names\":[\"傅士德\"],\"level\":\"著\"},{\"names\":[\"周天和等\"],\"level\":\"译\"}]"));
-//		System.out.println(analyzer("author", "周天和等"));
 	}
 	
 	private List<String> analyzer(String field, String localText) {

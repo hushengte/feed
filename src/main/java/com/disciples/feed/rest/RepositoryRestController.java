@@ -1,16 +1,16 @@
-package com.disciples.feed.manage;
+package com.disciples.feed.rest;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
-import org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.util.MultiValueMap;
@@ -21,47 +21,44 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.disciples.feed.Response;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class ManageController {
+public class RepositoryRestController {
 	
 	private static final String BASE_URL = "{repository}";
     
+	@Autowired
+	private RepositoryService repositoryService;
+	@Autowired
+	private ObjectMapper objectMapper;
 	private MappingJackson2HttpMessageConverter converter;
 	
-	@Autowired ManageService manageService;
-	
-	public ManageController() {
-		Jackson2ObjectMapperFactoryBean factory = new Jackson2ObjectMapperFactoryBean();
-		factory.setSimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		factory.afterPropertiesSet();
-		converter = new MappingJackson2HttpMessageConverter();
-		converter.setObjectMapper(factory.getObject());
+	@PostConstruct
+	public void init() {
+		this.converter = new MappingJackson2HttpMessageConverter(objectMapper);
 	}
 	
     @RequestMapping(value = BASE_URL + "/list", method = {RequestMethod.GET, RequestMethod.POST})
     public Object search(@PathVariable String repository, Integer page, Integer size, @RequestBody(required = false) MultiValueMap<String, Object> params) {
-        Page<?> pageData = manageService.find(manageService.getDomainClass(repository), page, size, params);
+        Page<?> pageData = repositoryService.find(repositoryService.getDomainClass(repository), page, size, params);
         return Response.success(pageData.getContent(), pageData.getTotalElements());
     }
     
     @RequestMapping(value = BASE_URL + "/getKeyValues", method = RequestMethod.GET)
     public Object getKeyValues(@PathVariable String repository, @RequestParam(required = false) String method) {
-        List<?> result = manageService.getKeyValues(manageService.getDomainClass(repository), method);
+        List<?> result = repositoryService.getKeyValues(repositoryService.getDomainClass(repository), method);
         return Response.success(result, result.size());
     }
     
     @RequestMapping(value = BASE_URL + "/add", method = RequestMethod.POST)
     public Object save(@PathVariable String repository, HttpServletRequest request) {
-    	Class<?> domainClass = manageService.getDomainClass(repository);
+    	Class<?> domainClass = repositoryService.getDomainClass(repository);
     	if (domainClass == null) {
     		return Response.error(String.format("领域对象不存在：repository=%s", repository));
     	}
     	try {
 			Object obj = converter.read(domainClass, new ServletServerHttpRequest(request));
-			if (obj == null) {
-				return Response.error("请求数据不能为空");
-			}
-			return Response.success(manageService.save(obj));
+			return Response.success(repositoryService.save(obj));
 		} catch (IOException e) {
 			return Response.error(String.format("请求体数据读取失败：%s", e.getMessage()));
 		}
@@ -75,7 +72,7 @@ public class ManageController {
     @RequestMapping(value = BASE_URL + "/{id}", method = RequestMethod.DELETE)
     public Object delete(@PathVariable String repository, @PathVariable Integer id) {
     	try {
-    		manageService.delete(manageService.getDomainClass(repository), id, null);
+    		repositoryService.delete(repositoryService.getDomainClass(repository), id, null);
     		return Response.success(true);
     	} catch (DataIntegrityViolationException e) {
 			return Response.error("删除失败：请先删除关联数据再操作");
@@ -87,7 +84,7 @@ public class ManageController {
     @RequestMapping(value = BASE_URL + "/delete", method = RequestMethod.POST)
     public Object deleteList(@PathVariable String repository, @RequestBody List<Map<String, Object>> dtoList) {
     	try {
-    		return Response.success(manageService.delete(manageService.getDomainClass(repository), dtoList));
+    		return Response.success(repositoryService.delete(repositoryService.getDomainClass(repository), dtoList));
     	} catch (DataIntegrityViolationException e) {
     		return Response.error("删除失败：请先删除关联数据再操作");
 		} catch (DataAccessException e) {

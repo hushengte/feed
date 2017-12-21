@@ -1,36 +1,21 @@
 package com.disciples.feed.config;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean;
 
 import com.disciples.feed.json.HibernateProxyModule;
-import com.disciples.feed.manage.ManageService;
+import com.disciples.feed.rest.RepositoryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
-public class ManageConfiguration {
+public class RepositoryRestConfiguration {
 	
 	@Autowired
 	private ApplicationContext applicationContext;
-	
-	@Bean
-	public PersistentEntities persistentEntities() {
-		List<MappingContext<?, ?>> mappingContexts = new ArrayList<MappingContext<?, ?>>();
-		for (MappingContext<?, ?> context : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, MappingContext.class).values()) {
-			mappingContexts.add(context);
-		}
-		return new PersistentEntities(mappingContexts);
-	}
 	
 	@Bean
 	public Repositories repositories() {
@@ -38,8 +23,8 @@ public class ManageConfiguration {
 	}
 	
 	@Bean
-	public ManageService manageService() {
-		return new ManageService(persistentEntities(), repositories());
+	public RepositoryService repositoryService() {
+		return new RepositoryService(repositories());
 	}
 	
 	@Bean
