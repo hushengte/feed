@@ -17,13 +17,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.disciples.feed.AuthorAnalyzer;
+import com.disciples.feed.config.FullTextConfiguration;
 import com.disciples.feed.config.ServiceConfig;
 import com.disciples.feed.domain.Book;
 import com.disciples.feed.domain.Publisher;
 import com.disciples.feed.fulltext.FullTextQuery;
 import com.disciples.feed.fulltext.FullTextService;
 
-@ContextConfiguration(classes = ServiceConfig.class)
+@ContextConfiguration(classes = {ServiceConfig.class, FullTextConfiguration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FullTextServiceTest {
 

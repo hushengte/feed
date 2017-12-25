@@ -11,9 +11,9 @@ import com.disciples.feed.rest.RepositoryEvent.Type;
 /**
  * Abstract class that listens for generic {@link RepositoryEvent}s and dispatches them to a specific method based on the event type.
  */
-public abstract class AbstractRepositoryEventListener<T> implements ApplicationListener<RepositoryEvent> {
+public abstract class AbstractRepositoryListener<T> implements ApplicationListener<RepositoryEvent> {
 
-	private final Class<?> entityType = GenericTypeResolver.resolveTypeArgument(getClass(), AbstractRepositoryEventListener.class);
+	private final Class<?> entityType = GenericTypeResolver.resolveTypeArgument(getClass(), AbstractRepositoryListener.class);
 
 	/*
 	 * (non-Javadoc)
@@ -38,36 +38,42 @@ public abstract class AbstractRepositoryEventListener<T> implements ApplicationL
 			onAfterDelete((T)source);
 		} else {
 			QueryEventSource qes = (QueryEventSource)source;
-			Page<T> result = onQuery(qes.getEntityType(), qes.getPageable(), qes.getParameters());
+			Page<?> result = onQuery(qes.getEntityType(), qes.getPageable(), qes.getParameters());
 			qes.setResult(result);
 		}
 	}
 
 	/**
-	 * Override this method if you are interested in {@literal beforeSave} events.
+	 * Override this method if you are interested in {@literal RepositoryEvent.Type.BEFORE_SAVE} events.
 	 * @param entity The entity being saved.
 	 */
 	protected void onBeforeSave(T entity) {}
 
 	/**
-	 * Override this method if you are interested in {@literal afterSave} events.
+	 * Override this method if you are interested in {@literal RepositoryEvent.Type.AFTER_SAVE} events.
 	 * @param entity The entity that was just saved.
 	 */
 	protected void onAfterSave(T entity) {}
 
 	/**
-	 * Override this method if you are interested in {@literal beforeDelete} events.
+	 * Override this method if you are interested in {@literal RepositoryEvent.Type.BEFORE_DELETE} events.
 	 * @param entity The entity that is being deleted.
 	 */
 	protected void onBeforeDelete(T entity) {}
 
 	/**
-	 * Override this method if you are interested in {@literal afterDelete} events.
+	 * Override this method if you are interested in {@literal RepositoryEvent.Type.AFTER_DELETE} events.
 	 * @param entity The entity that was just deleted.
 	 */
 	protected void onAfterDelete(T entity) {}
 	
-	protected Page<T> onQuery(Class<?> entityType, Pageable pageable, MultiValueMap<String, Object> params) {
+	/**
+	 * Override this method if you are interested in {@literal RepositoryEvent.Type.READ} events.
+	 * @param entityType Entity class
+	 * @param pageable Page request
+	 * @param params Query parameters
+	 */
+	protected Page<?> onQuery(Class<?> entityType, Pageable pageable, MultiValueMap<String, Object> params) {
 		return null;
 	}
 

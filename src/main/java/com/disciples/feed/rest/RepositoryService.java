@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.PersistenceException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -73,27 +71,18 @@ public class RepositoryService implements ApplicationEventPublisherAware {
     	return repositoryClassCache.get(key);
     }
 	
-	@Transactional
-	protected Object doSave(RepositoryInvoker invoker, Object object) {
+	public Object save(Object object) {
+		Assert.notNull(object, "需要保存的实体不能为空");
+		RepositoryInvoker invoker = invokeFactory.getInvokerFor(object.getClass());
 		publisher.publishEvent(new RepositoryEvent(object, Type.BEFORE_SAVE));
 		try {
 			invoker.invokeSave(object);
-		} catch (PersistenceException e) {
+		} catch (DataAccessException e) {
 			LOG.error(e.getMessage(), e);
-			throw new RepositoryException("保存失败");
+			throw new RepositoryException("保存失败：数据库访问异常", e);
 		}
 		publisher.publishEvent(new RepositoryEvent(object, Type.AFTER_SAVE));
 		return object;
-	}
-	
-	public Object save(Object object) {
-		Assert.notNull(object, "Object is required");
-		RepositoryInvoker invoker = invokeFactory.getInvokerFor(object.getClass());
-		try {
-			return doSave(invoker, object);
-		} catch (DataAccessException e) {
-			throw new RepositoryException("保存失败：" + e.getMessage());
-		}
 	}
 	
 	@Transactional
@@ -117,16 +106,17 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 
 	public <T> int delete(Class<T> domainClass, List<Map<String, Object>> dataList) {
 		Assert.notNull(domainClass, "实体类型不能为空");
-		Assert.notEmpty(dataList, "dataList cannot be emtpty.");
+		Assert.notEmpty(dataList, "删除数据列表不能为空.");
 		RepositoryInvoker invoker = invokeFactory.getInvokerFor(domainClass);
 		try {
 			doDelete(invoker, dataList);
 			return dataList.size();
-		} catch (DataIntegrityViolationException e) {
-			throw new RepositoryException("删除失败：请先删除关联数据再操作");
 		} catch (DataAccessException e) {
+			if (e instanceof DataIntegrityViolationException) {
+				throw new RepositoryException("删除失败：请先删除关联数据再操作", e);
+			}
 			LOG.error(e.getMessage(), e);
-			throw new RepositoryException("删除失败：" + e.getMessage());
+			throw new RepositoryException("删除失败：数据库访问异常", e);
 		}
 	}
 	
@@ -163,7 +153,7 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 		if (StringUtils.hasText(methodText)) {
 			Method method = getMappedMethod(domainClass, methodText);
 			if (method == null) {
-				throw new RepositoryException(String.format("数据工厂 %s 找不到搜索方法 %s。", domainClass.getSimpleName(), methodText));
+				throw new RepositoryException(String.format("实体%s的数据工厂不存在搜索方法 %s。", domainClass.getSimpleName(), methodText));
 			}
 			Object queryResult = invoker.invokeQueryMethod(method, params, pageable, pageable != null ? pageable.getSort() : null);
 			if (queryResult instanceof Page) {
