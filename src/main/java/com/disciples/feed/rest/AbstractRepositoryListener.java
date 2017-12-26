@@ -22,24 +22,26 @@ public abstract class AbstractRepositoryListener<T> implements ApplicationListen
 	@Override
 	@SuppressWarnings({ "unchecked" })
 	public final void onApplicationEvent(RepositoryEvent event) {
-		Class<?> srcType = event.getSource().getClass();
-		if (null != entityType && !entityType.isAssignableFrom(srcType)) {
-			return;
-		}
 		Type eventType = event.getEventType();
 		Object source =  event.getSource();
-		if (Type.BEFORE_SAVE == eventType) {
-			onBeforeSave((T)source);
-		} else if (Type.AFTER_SAVE == eventType) {
-			onAfterSave((T)source);
-		} else if (Type.BEFORE_DELETE == eventType) {
-			onBeforeDelete((T)source);
-		} else if (Type.AFTER_DELETE == eventType) {
-			onAfterDelete((T)source);
-		} else {
+		if (Type.READ == eventType) {
 			QueryEventSource qes = (QueryEventSource)source;
 			Page<?> result = onQuery(qes.getEntityType(), qes.getPageable(), qes.getParameters());
 			qes.setResult(result);
+		} else {
+			Class<?> srcType = source.getClass();
+			if (null != entityType && !entityType.isAssignableFrom(srcType)) {
+				return;
+			}
+			if (Type.BEFORE_SAVE == eventType) {
+				onBeforeSave((T)source);
+			} else if (Type.AFTER_SAVE == eventType) {
+				onAfterSave((T)source);
+			} else if (Type.BEFORE_DELETE == eventType) {
+				onBeforeDelete((T)source);
+			} else if (Type.AFTER_DELETE == eventType) {
+				onAfterDelete((T)source);
+			}
 		}
 	}
 
