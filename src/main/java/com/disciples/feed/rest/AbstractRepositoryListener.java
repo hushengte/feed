@@ -27,7 +27,9 @@ public abstract class AbstractRepositoryListener<T> implements ApplicationListen
 		if (Type.READ == eventType) {
 			QueryEventSource qes = (QueryEventSource)source;
 			Page<?> result = onQuery(qes.getEntityType(), qes.getPageable(), qes.getParameters());
-			qes.setResult(result);
+			if (result != null) {
+				qes.setResult(result);
+			}
 		} else {
 			Class<?> srcType = source.getClass();
 			if (null != entityType && !entityType.isAssignableFrom(srcType)) {
