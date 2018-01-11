@@ -8,11 +8,9 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 
-import com.disciples.feed.config.FullTextConfiguration;
-
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Import(FullTextConfiguration.class)
+@Import(FullTextConfigurationSelector.class)
 @Documented
 public @interface EnableFullText {
 

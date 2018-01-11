@@ -5,33 +5,46 @@ import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import com.disciples.feed.config.RepositoryRestConfiguration;
+import com.disciples.feed.config.RepositoryConfiguration;
 import com.disciples.feed.config.ServiceConfig;
 import com.disciples.feed.domain.Book;
 import com.disciples.feed.domain.Publisher;
+import com.disciples.feed.json.HibernateProxyModule;
 import com.disciples.feed.rest.RepositoryException;
 import com.disciples.feed.rest.RepositoryService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@ContextConfiguration(classes = {ServiceConfig.class, RepositoryRestConfiguration.class})
+@ContextConfiguration(classes = {ServiceConfig.class, RepositoryConfiguration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RepositoryServiceTest {
 
 	@Autowired
 	private RepositoryService repositoryService;
-	@Autowired
+
 	private ObjectMapper objectMapper;
+
+	private ObjectMapper objectMapper() {
+		if (objectMapper == null) {
+			Jackson2ObjectMapperFactoryBean factory = new Jackson2ObjectMapperFactoryBean();
+			factory.setSimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			factory.afterPropertiesSet();
+			objectMapper = factory.getObject();
+			objectMapper.registerModule(new HibernateProxyModule());
+		}
+		return objectMapper;
+	}
 	
 	private void print(Iterable<?> datas) {
 		for (Object data : datas) {
 			try {
-				System.out.println(objectMapper.writeValueAsString(data));
+				System.out.println(objectMapper().writeValueAsString(data));
 			} catch (JsonProcessingException e) {
 				e.printStackTrace();
 			}

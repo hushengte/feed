@@ -76,6 +76,7 @@ public abstract class AbstractRepositoryListener<T> implements ApplicationListen
 	 * @param entityType Entity class
 	 * @param pageable Page request
 	 * @param params Query parameters
+	 * @return finded page data, can be null
 	 */
 	protected Page<?> onQuery(Class<?> entityType, Pageable pageable, MultiValueMap<String, Object> params) {
 		return null;

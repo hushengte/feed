@@ -1,4 +1,4 @@
-package com.disciples.feed.rest;
+package com.disciples.feed.web;
 
 import java.io.IOException;
 import java.util.List;
@@ -17,10 +17,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.disciples.feed.Response;
+import com.disciples.feed.rest.RepositoryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@RestController
+@RequestMapping("${feed.rest.baseUrl:/api/admin}")
 public class RepositoryRestController {
 	
 	private static final String BASE_URL = "{repository}";

@@ -12,21 +12,27 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Page;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.disciples.feed.AuthorAnalyzer;
-import com.disciples.feed.config.FullTextConfiguration;
+import com.disciples.feed.annotation.EnableFullText;
 import com.disciples.feed.config.ServiceConfig;
 import com.disciples.feed.domain.Book;
 import com.disciples.feed.domain.Publisher;
 import com.disciples.feed.fulltext.FullTextQuery;
 import com.disciples.feed.fulltext.FullTextService;
+import com.disciples.feed.service.FullTextServiceTest.FullTextConfig;
 
-@ContextConfiguration(classes = {ServiceConfig.class, FullTextConfiguration.class})
+@ContextConfiguration(classes = {ServiceConfig.class, FullTextConfig.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FullTextServiceTest {
+	
+	@Configuration
+	@EnableFullText
+	public static class FullTextConfig {}
 
 	@Autowired
 	private FullTextService fullTextService;

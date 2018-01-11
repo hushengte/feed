@@ -46,19 +46,17 @@
 	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		
 		<spring.version>4.3.0.RELEASE</spring.version>
+		<spring.boot.autoconfigure.version>1.4.1.RELEASE</spring.boot.autoconfigure.version>
 		<spring.data.commons.version>1.12.2.RELEASE</spring.data.commons.version>
 		<spring.data.jpa.version>1.10.1.RELEASE</spring.data.jpa.version>
-		
+		<spring.data.solr.version>2.0.4.RELEASE</spring.data.solr.version>
 		<hikari.version>2.4.9</hikari.version>
-		
 		<jackson.version>2.6.5</jackson.version>
-		<slf4j.log4j12.version>1.7.10</slf4j.log4j12.version>
-		
 		<hibernate.version>4.3.9.Final</hibernate.version>
 		<hibernate.search.version>5.2.0.Final</hibernate.search.version>
 		<lucene.version>4.10.4</lucene.version>
+		<slf4j.log4j12.version>1.7.10</slf4j.log4j12.version>
 	</properties>
 	
 	<dependencies>
@@ -104,13 +102,13 @@
 			<version>${jackson.version}</version>
 		</dependency>
 		
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>${slf4j.log4j12.version}</version>
-		</dependency>
-		
 		<!-- Option Scope -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-autoconfigure</artifactId>
+			<version>${spring.boot.autoconfigure.version}</version>
+			<optional>true</optional>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
@@ -121,6 +119,12 @@
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-jpa</artifactId>
 			<version>${spring.data.jpa.version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-solr</artifactId>
+			<version>${spring.data.solr.version}</version>
 			<optional>true</optional>
 		</dependency>
 		
@@ -156,6 +160,12 @@
 			<version>${lucene.version}</version>
 			<optional>true</optional>
 	    </dependency>
+	    <dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j.log4j12.version}</version>
+			<optional>true</optional>
+		</dependency>
 		
 		<!-- Test scope -->
 		<dependency>
