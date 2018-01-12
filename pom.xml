@@ -127,6 +127,12 @@
 			<version>${spring.data.solr.version}</version>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>${spring.version}</version>
+			<optional>true</optional>
+		</dependency>
 		
 		<dependency>  
 		    <groupId>org.hibernate</groupId>  

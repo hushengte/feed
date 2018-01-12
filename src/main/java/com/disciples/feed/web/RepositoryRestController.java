@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.disciples.feed.Response;
 import com.disciples.feed.rest.RepositoryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
