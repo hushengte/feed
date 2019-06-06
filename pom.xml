@@ -2,30 +2,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	
-	<groupId>com.github.hushengte</groupId>
+    <parent>
+        <groupId>com.github.hushengte</groupId>
+        <artifactId>disciples-parent</artifactId>
+        <version>1.0.0</version>
+    </parent>
+    
 	<artifactId>disciples-feed</artifactId>
-	<version>1.0.9</version>
+	<version>1.0.10</version>
 	<packaging>jar</packaging>
 	
 	<name>disciples-feed</name>
 	<description>Incubator of Java application development component</description>
 	<url>https://github.com/hushengte/feed</url>
-	
-	<licenses>
-		<license>
-			<name>MIT License</name>
-    		<url>http://www.opensource.org/licenses/mit-license.php</url>
-		</license>
-	</licenses>
-	
-	<developers>
-		<developer>
-			<name>Ted Smith</name>
-      		<email>944576192@qq.com</email>
-      		<organization>Github</organization>
-      		<organizationUrl>https://github.com/hushengte</organizationUrl>
-		</developer>
-	</developers>
 	
 	<scm>
 		<connection>scm:git:git://github.com/hushengte/feed.git</connection>
@@ -33,30 +22,18 @@
   		<url>http://github.com/hushengte/feed/tree/master</url>
 	</scm>
 	
-	<distributionManagement>
-		<snapshotRepository>
-			<id>ossrh</id>
-	        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-		<repository>
-	        <id>ossrh</id>
-	        <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-	    </repository>
-	</distributionManagement>
-	
 	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.version>4.3.0.RELEASE</spring.version>
-		<spring.boot.autoconfigure.version>1.4.1.RELEASE</spring.boot.autoconfigure.version>
-		<spring.data.commons.version>1.12.2.RELEASE</spring.data.commons.version>
-		<spring.data.jpa.version>1.10.1.RELEASE</spring.data.jpa.version>
-		<spring.data.solr.version>2.0.4.RELEASE</spring.data.solr.version>
-		<hikari.version>2.4.9</hikari.version>
-		<jackson.version>2.6.5</jackson.version>
+        <hikaricp.version>3.2.0</hikaricp.version>
+        <mysql.version>5.1.39</mysql.version>
+        <spring-boot.version>1.4.1.RELEASE</spring-boot.version>
+        <spring-data-commons.version>1.13.22.RELEASE</spring-data-commons.version>
+		<spring-data-jpa.version>1.11.22.RELEASE</spring-data-jpa.version>
+		<spring-data-solr.version>2.0.4.RELEASE</spring-data-solr.version>
+		<jackson.version>2.9.9</jackson.version>
 		<hibernate.version>4.3.9.Final</hibernate.version>
-		<hibernate.search.version>5.2.0.Final</hibernate.search.version>
+		<hibernate-search.version>5.2.0.Final</hibernate-search.version>
 		<lucene.version>4.10.4</lucene.version>
-		<slf4j.log4j12.version>1.7.10</slf4j.log4j12.version>
+		<slf4j-log4j12.version>1.7.10</slf4j-log4j12.version>
 	</properties>
 	
 	<dependencies>
@@ -71,12 +48,12 @@
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.39</version>
+			<version>${mysql.version}</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.zaxxer</groupId>
-		    <artifactId>HikariCP-java7</artifactId>
-		    <version>${hikari.version}</version>
+		    <artifactId>HikariCP</artifactId>
+		    <version>${hikaricp.version}</version>
 		</dependency>
 		
 		<dependency>
@@ -87,7 +64,7 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-commons</artifactId>
-			<version>${spring.data.commons.version}</version>
+			<version>${spring-data-commons.version}</version>
 		</dependency>
 		
 		<dependency>
@@ -106,7 +83,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-autoconfigure</artifactId>
-			<version>${spring.boot.autoconfigure.version}</version>
+			<version>${spring-boot.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
@@ -118,13 +95,13 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-jpa</artifactId>
-			<version>${spring.data.jpa.version}</version>
+			<version>${spring-data-jpa.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-solr</artifactId>
-			<version>${spring.data.solr.version}</version>
+			<version>${spring-data-solr.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
@@ -150,7 +127,7 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-search-orm</artifactId>
-			<version>${hibernate.search.version}</version>
+			<version>${hibernate-search.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
@@ -169,23 +146,11 @@
 	    <dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<version>${slf4j.log4j12.version}</version>
+			<version>${slf4j-log4j12.version}</version>
 			<optional>true</optional>
 		</dependency>
 		
 		<!-- Test scope -->
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.12</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<version>${spring.version}</version>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
 		    <artifactId>h2</artifactId>
@@ -194,64 +159,5 @@
 		</dependency>
 		
 	</dependencies>
-	
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.3</version>
-				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
-				</configuration>
-			</plugin>
-			<plugin>
-		  		<groupId>org.apache.maven.plugins</groupId>
-		  		<artifactId>maven-source-plugin</artifactId>
-		  		<version>2.3</version>
-		  		<executions>
-		    		<execution>
-			     		<id>attach-sources</id>
-			      		<goals>
-			        		<goal>jar-no-fork</goal>
-			      		</goals>
-		    		</execution>
-		  		</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.10.4</version>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-    			<artifactId>maven-gpg-plugin</artifactId>
-    			<version>1.6</version>
-    			<configuration>
-    				<repositoryId>ossrh</repositoryId>
-    				<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    				<passphraseServerId>disciples</passphraseServerId>
-    			</configuration>
-    			<executions>
-    				<execution>
-    					<id>sign-artifacts</id>
-    					<phase>verify</phase>
-    					<goals>
-    						<goal>sign</goal>
-    					</goals>
-    				</execution>
-    			</executions>
-			</plugin>
-		</plugins>
-	</build>
 	
 </project>
