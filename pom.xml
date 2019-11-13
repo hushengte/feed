@@ -29,7 +29,7 @@
         <spring-data-commons.version>1.13.22.RELEASE</spring-data-commons.version>
 		<spring-data-jpa.version>1.11.22.RELEASE</spring-data-jpa.version>
 		<spring-data-solr.version>2.0.4.RELEASE</spring-data-solr.version>
-		<jackson.version>2.9.9</jackson.version>
+		<jackson.version>2.9.10.1</jackson.version>
 		<hibernate.version>4.3.9.Final</hibernate.version>
 		<hibernate-search.version>5.2.0.Final</hibernate-search.version>
 		<lucene.version>4.10.4</lucene.version>
