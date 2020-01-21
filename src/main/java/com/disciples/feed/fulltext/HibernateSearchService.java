@@ -72,8 +72,9 @@ public class HibernateSearchService implements FullTextService {
     	Class<T> docClass = query.getDocClass();
     	String keyword = query.getKeyword();
     	List<String> fields = query.getFields();
+    	Pageable pageable = query.getPageable();
     	if (!StringUtils.hasText(keyword) || CollectionUtils.isEmpty(fields)) {
-    		return new PageImpl<T>(Collections.<T>emptyList(), null, 0);
+    		return new PageImpl<T>(Collections.<T>emptyList(), pageable, 0);
     	}
     	EntityManager entityManager = entityManagerFactory.createEntityManager();
     	try {
@@ -84,16 +85,15 @@ public class HibernateSearchService implements FullTextService {
     		Query localQuery = tmc.matching(keyword).createQuery();
     		org.hibernate.search.jpa.FullTextQuery fullTextQuery = fullTextEm.createFullTextQuery(localQuery, docClass);
     		//设置分页
-    		Pageable pageable = query.getPageable();
     		if (pageable != null) {
-    			fullTextQuery.setFirstResult(pageable.getOffset()).setMaxResults(pageable.getPageSize());
+    			fullTextQuery.setFirstResult((int)pageable.getOffset()).setMaxResults(pageable.getPageSize());
     		} else {
     			fullTextQuery.setFirstResult(0).setMaxResults(query.getMaxResults());
     		}
     		//查询总数
     		int total = fullTextQuery.getResultSize();
             if (total == 0) {
-            	return new PageImpl<T>(Collections.<T>emptyList(), null, 0);
+            	return new PageImpl<T>(Collections.<T>emptyList(), pageable, 0);
             }
     		//抓取数据
             Set<String> projections = query.getProjections();
@@ -117,7 +117,7 @@ public class HibernateSearchService implements FullTextService {
     			Highlighter highlighter = new Highlighter(formatter, new QueryScorer(localQuery));
     			doHighlight(docClass, analyzer, highlighter, content, fields);
     		}
-    		return new PageImpl<T>(content, null, total);
+    		return new PageImpl<T>(content, pageable, total);
     	} finally {
     		entityManager.close();
     	}

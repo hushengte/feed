@@ -35,7 +35,7 @@ public class HibernateProxyModule extends SimpleModule {
 		public void serialize(HibernateProxy value, JsonGenerator gen, SerializerProvider provider) throws IOException {
 			LazyInitializer lazyInitializer = value.getHibernateLazyInitializer();
 			Class<?> entityClass = lazyInitializer.getPersistentClass();
-			Object entity = BeanUtils.instantiate(entityClass);
+			Object entity = BeanUtils.instantiateClass(entityClass);
 			if (entity instanceof BaseEntity) {
 				((BaseEntity)entity).setId((Integer)lazyInitializer.getIdentifier());
 			} else {

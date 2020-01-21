@@ -6,23 +6,26 @@ import java.util.Date;
 
 public abstract class FormatUtils {
     
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-    private static final SimpleDateFormat DATETIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
+    private static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     
     public static String formatDate(Date date) {
-        return date != null ? DATE_FORMAT.format(date) : null;
+        SimpleDateFormat formatter = new SimpleDateFormat(DATE_FORMAT);
+        return date != null ? formatter.format(date) : null;
     }
     
     public static String formatDateTime(Date date) {
-        return date != null ? DATETIME_FORMAT.format(date) : null;
+        SimpleDateFormat formatter = new SimpleDateFormat(DATETIME_FORMAT);
+        return date != null ? formatter.format(date) : null;
     }
     
     public static Date parseDate(String dateStr) {
         if (dateStr != null) {
             try {
-                return DATE_FORMAT.parse(dateStr);
+                SimpleDateFormat formatter = new SimpleDateFormat(DATE_FORMAT);
+                return formatter.parse(dateStr);
             } catch (ParseException e) {
-                return new Date();
+                throw new RuntimeException(e.getMessage(), e);
             }
         }
         return null;
@@ -31,9 +34,10 @@ public abstract class FormatUtils {
     public static Date parseDateTime(String dateStr) {
         if (dateStr != null) {
             try {
-                return DATETIME_FORMAT.parse(dateStr);
+                SimpleDateFormat formatter = new SimpleDateFormat(DATETIME_FORMAT);
+                return formatter.parse(dateStr);
             } catch (ParseException e) {
-                return new Date();
+                throw new RuntimeException(e.getMessage(), e);
             }
         }
         return null;

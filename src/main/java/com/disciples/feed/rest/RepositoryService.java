@@ -53,7 +53,7 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 			String key = StringUtils.uncapitalize(type.getSimpleName());
 			repositoryClassCache.put(key, type);
 			
-			RepositoryInformation repositoryInfo = repositories.getRepositoryInformationFor(type);
+			RepositoryInformation repositoryInfo = repositories.getRepositoryInformationFor(type).get();
 			Map<String, Method> methodsCache = new HashMap<String, Method>();
 			for (Method queryMethod : repositoryInfo.getQueryMethods()) {
 				methodsCache.put(queryMethod.getName(), queryMethod);
@@ -90,10 +90,10 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 		for (Map<String, Object> data : dataList) {
 			Integer id = (Integer)data.get("id");
 			if (id != null) {
-	    		Object object = invoker.invokeFindOne(id);
+	    		Object object = invoker.invokeFindById(id).get();
 	        	if (object != null) {
 	        		publisher.publishEvent(new RepositoryEvent(object, Type.BEFORE_DELETE));
-	        		invoker.invokeDelete(id);
+	        		invoker.invokeDeleteById(id);
 	        		publisher.publishEvent(new RepositoryEvent(object, Type.AFTER_DELETE));
 	        	}
 	    	}
@@ -146,7 +146,7 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 		Assert.notNull(domainClass, "实体类型不能为空");
 		
 		params = params == null ? new LinkedMultiValueMap<String, Object>() : params;
-		Pageable pageable = page != null ? new PageRequest(page, size) : null;
+		Pageable pageable = page != null ? PageRequest.of(page, size) : Pageable.unpaged();
 		RepositoryInvoker invoker = invokeFactory.getInvokerFor(domainClass);
 		
 		String methodText = (String) params.getFirst("method");
@@ -155,7 +155,7 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 			if (method == null) {
 				throw new RepositoryException(String.format("实体%s的数据工厂不存在搜索方法 %s。", domainClass.getSimpleName(), methodText));
 			}
-			Object queryResult = invoker.invokeQueryMethod(method, params, pageable, pageable != null ? pageable.getSort() : null);
+			Object queryResult = invoker.invokeQueryMethod(method, params, pageable, pageable.getSort());
 			if (queryResult instanceof Page) {
 				return (Page<T>) queryResult;
 			}

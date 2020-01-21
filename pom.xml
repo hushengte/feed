@@ -5,11 +5,11 @@
     <parent>
         <groupId>com.github.hushengte</groupId>
         <artifactId>disciples-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.2</version>
     </parent>
     
 	<artifactId>disciples-feed</artifactId>
-	<version>1.0.10</version>
+	<version>1.1.0</version>
 	<packaging>jar</packaging>
 	
 	<name>disciples-feed</name>
@@ -23,42 +23,31 @@
 	</scm>
 	
 	<properties>
-        <hikaricp.version>3.2.0</hikaricp.version>
-        <mysql.version>5.1.39</mysql.version>
-        <spring-boot.version>1.4.1.RELEASE</spring-boot.version>
-        <spring-data-commons.version>1.13.22.RELEASE</spring-data-commons.version>
-		<spring-data-jpa.version>1.11.22.RELEASE</spring-data-jpa.version>
+        <jackson.version>2.10.1</jackson.version>
+        <spring.version>5.1.2.RELEASE</spring.version>
+        <spring-data-commons.version>2.1.2.RELEASE</spring-data-commons.version>
+        
+        <servlet-api.version>3.1.0</servlet-api.version>
+		<spring-data-jpa.version>2.1.2.RELEASE</spring-data-jpa.version>
 		<spring-data-solr.version>2.0.4.RELEASE</spring-data-solr.version>
-		<jackson.version>2.9.9</jackson.version>
+        <hibernate-jpa-api.version>1.0.0.Final</hibernate-jpa-api.version>
 		<hibernate.version>4.3.9.Final</hibernate.version>
 		<hibernate-search.version>5.2.0.Final</hibernate-search.version>
 		<lucene.version>4.10.4</lucene.version>
-		<slf4j-log4j12.version>1.7.10</slf4j-log4j12.version>
+        
+        <h2.version>1.4.192</h2.version>
 	</properties>
 	
 	<dependencies>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<version>3.1.0</version>
-			<scope>provided</scope>
-			<optional>true</optional>
-		</dependency>
-		
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>${mysql.version}</version>
-		</dependency>
-		<dependency>
-		    <groupId>com.zaxxer</groupId>
-		    <artifactId>HikariCP</artifactId>
-		    <version>${hikaricp.version}</version>
-		</dependency>
-		
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring-web</artifactId>
+			<artifactId>spring-webmvc</artifactId>
 			<version>${spring.version}</version>
 		</dependency>
 		<dependency>
@@ -67,50 +56,37 @@
 			<version>${spring-data-commons.version}</version>
 		</dependency>
 		
-		<dependency>
-		    <groupId>org.hibernate.javax.persistence</groupId>
-		    <artifactId>hibernate-jpa-2.1-api</artifactId>
-		    <version>1.0.0.Final</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>${jackson.version}</version>
-		</dependency>
-		
-		<!-- Option Scope -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-autoconfigure</artifactId>
-			<version>${spring-boot.version}</version>
-			<optional>true</optional>
-		</dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>${servlet-api.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+            <version>${spring-data-jpa.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-solr</artifactId>
+            <version>${spring-data-solr.version}</version>
+            <optional>true</optional>
+        </dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
 			<version>${spring.version}</version>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-jpa</artifactId>
-			<version>${spring-data-jpa.version}</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-solr</artifactId>
-			<version>${spring-data-solr.version}</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-			<version>${spring.version}</version>
-			<optional>true</optional>
-		</dependency>
 		
+        <dependency>
+            <groupId>org.hibernate.javax.persistence</groupId>
+            <artifactId>hibernate-jpa-2.1-api</artifactId>
+            <version>${hibernate-jpa-api.version}</version>
+            <optional>true</optional>
+        </dependency>
 		<dependency>  
 		    <groupId>org.hibernate</groupId>  
 		    <artifactId>hibernate-core</artifactId>  
@@ -123,13 +99,13 @@
 			<version>${hibernate.version}</version>
 			<optional>true</optional>
 		</dependency>
-		<!-- Hibernate Search-->
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-search-orm</artifactId>
 			<version>${hibernate-search.version}</version>
 			<optional>true</optional>
 		</dependency>
+        
 		<dependency>
 		  	<groupId>org.apache.lucene</groupId>
 		  	<artifactId>lucene-highlighter</artifactId>
@@ -143,21 +119,19 @@
 			<version>${lucene.version}</version>
 			<optional>true</optional>
 	    </dependency>
-	    <dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>${slf4j-log4j12.version}</version>
-			<optional>true</optional>
-		</dependency>
 		
-		<!-- Test scope -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${spring.version}</version>
+            <scope>test</scope>
+        </dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
 		    <artifactId>h2</artifactId>
-		    <version>1.4.192</version>
+		    <version>${h2.version}</version>
 		    <scope>test</scope>
 		</dependency>
-		
 	</dependencies>
 	
 </project>
