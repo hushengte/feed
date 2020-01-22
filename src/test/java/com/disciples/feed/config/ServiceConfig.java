@@ -3,17 +3,15 @@ package com.disciples.feed.config;
 import java.io.IOException;
 
 import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
 
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseFactory;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
@@ -25,32 +23,16 @@ import com.disciples.feed.repository.DefaultJpaRepository;
 
 @Configuration
 @PropertySource("classpath:application.properties")
-@ComponentScan("com.disciples.feed.service")
 @EnableJpaRepositories(basePackages = "com.disciples.feed.dao", repositoryBaseClass = DefaultJpaRepository.class)
 @EnableTransactionManagement(proxyTargetClass = true)
 public class ServiceConfig {
 	
     @Bean
-	public DataSource dataSource() {
-    	return new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.H2).build();
-	}
-    /*
-    @Autowired
-	private Environment env;
-
-    
-    @Bean
-	public DataSource dataSource() {
-		HikariDataSource dataSource = new HikariDataSource();
-		dataSource.setDriverClassName(env.getProperty("jdbc.driverClassName"));
-		dataSource.setJdbcUrl(env.getProperty("jdbc.url"));
-		dataSource.setUsername(env.getProperty("jdbc.username"));
-		dataSource.setPassword(env.getProperty("jdbc.password"));
-		dataSource.setMinimumIdle(env.getProperty("jdbc.pool.minSize", Integer.class));
-		dataSource.setMaximumPoolSize(env.getProperty("jdbc.pool.maxSize", Integer.class));
-		return dataSource;
-	}
-	*/
+    public EmbeddedDatabase dataSource() {
+        EmbeddedDatabaseFactory databaseFactory = new EmbeddedDatabaseFactory();
+        databaseFactory.setDatabaseConfigurer(H2EmbeddedDatabaseConfigurer.getInstance());
+        return databaseFactory.getDatabase();
+    }
     
     @Bean
 	public EntityManagerFactory entityManagerFactory() {

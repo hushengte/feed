@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.support.DefaultRepositoryInvokerFactory;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.data.repository.support.RepositoryInvoker;
@@ -53,17 +53,19 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 			String key = StringUtils.uncapitalize(type.getSimpleName());
 			repositoryClassCache.put(key, type);
 			
-			RepositoryInformation repositoryInfo = repositories.getRepositoryInformationFor(type).get();
 			Map<String, Method> methodsCache = new HashMap<String, Method>();
-			for (Method queryMethod : repositoryInfo.getQueryMethods()) {
-				methodsCache.put(queryMethod.getName(), queryMethod);
-			}
+			repositories.getRepositoryInformationFor(type).ifPresent(repositoryInfo -> {
+			    repositoryInfo.getQueryMethods().forEach(queryMethod -> {
+			        methodsCache.put(queryMethod.getName(), queryMethod);
+			    });
+			});
 			repositoryMethodsCache.put(type, methodsCache);
 		}
 	}
 	
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+	    Assert.notNull(applicationEventPublisher, "ApplicationEventPublisher is required.");
 		this.publisher = applicationEventPublisher;
 	}
 	
@@ -71,31 +73,29 @@ public class RepositoryService implements ApplicationEventPublisherAware {
     	return repositoryClassCache.get(key);
     }
 	
-	public Object save(Object object) {
-		Assert.notNull(object, "需要保存的实体不能为空");
-		RepositoryInvoker invoker = invokeFactory.getInvokerFor(object.getClass());
-		publisher.publishEvent(new RepositoryEvent(object, Type.BEFORE_SAVE));
+	public <T> T save(T entity) {
+		Assert.notNull(entity, "实体不能为空");
+		RepositoryInvoker invoker = invokeFactory.getInvokerFor(entity.getClass());
+		publisher.publishEvent(new RepositoryEvent(entity, Type.BEFORE_SAVE));
 		try {
-			invoker.invokeSave(object);
+			invoker.invokeSave(entity);
 		} catch (DataAccessException e) {
 			LOG.error(e.getMessage(), e);
 			throw new RepositoryException("保存失败：数据库访问异常", e);
 		}
-		publisher.publishEvent(new RepositoryEvent(object, Type.AFTER_SAVE));
-		return object;
+		publisher.publishEvent(new RepositoryEvent(entity, Type.AFTER_SAVE));
+		return entity;
 	}
 	
-	@Transactional
 	protected void doDelete(RepositoryInvoker invoker, List<Map<String, Object>> dataList) {
 		for (Map<String, Object> data : dataList) {
 			Integer id = (Integer)data.get("id");
 			if (id != null) {
-	    		Object object = invoker.invokeFindById(id).get();
-	        	if (object != null) {
-	        		publisher.publishEvent(new RepositoryEvent(object, Type.BEFORE_DELETE));
-	        		invoker.invokeDeleteById(id);
-	        		publisher.publishEvent(new RepositoryEvent(object, Type.AFTER_DELETE));
-	        	}
+	    		invoker.invokeFindById(id).ifPresent(object -> {
+	    		    publisher.publishEvent(new RepositoryEvent(object, Type.BEFORE_DELETE));
+                    invoker.invokeDeleteById(id);
+                    publisher.publishEvent(new RepositoryEvent(object, Type.AFTER_DELETE));
+	    		});
 	    	}
 		}
 	}
@@ -104,6 +104,7 @@ public class RepositoryService implements ApplicationEventPublisherAware {
     	delete(domainClass, Collections.singletonList(Collections.<String, Object>singletonMap("id", id)));
 	}
 
+	@Transactional
 	public <T> int delete(Class<T> domainClass, List<Map<String, Object>> dataList) {
 		Assert.notNull(domainClass, "实体类型不能为空");
 		Assert.notEmpty(dataList, "删除数据列表不能为空.");
@@ -129,12 +130,16 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 		Assert.notNull(domainClass, "实体类型不能为空");
 		
 		RepositoryInvoker invoker = invokeFactory.getInvokerFor(domainClass);
-		Method method = getMappedMethod(domainClass, StringUtils.hasText(methodText) ? methodText : "getKeyValues");
+		String methodName = StringUtils.hasText(methodText) ? methodText : "getKeyValues";
+		Method method = getMappedMethod(domainClass, methodName);
 		if (method == null) {
 			return Collections.emptyList();
 		}
-		Object result = invoker.invokeQueryMethod(method, EMPTY_PARAMS, null, null);
-		return (result instanceof List) ? (List<?>)result : Collections.singletonList(result) ;
+		Pageable pageable = Pageable.unpaged();
+		Optional<Object> optional = invoker.invokeQueryMethod(method, EMPTY_PARAMS, pageable, pageable.getSort());
+		return optional.map(result -> {
+		        return (result instanceof List) ? (List<?>)result : Collections.singletonList(result);
+		    }).orElse(Collections.emptyList());
 	}
 	
 	public <T> Page<T> find(Class<T> domainClass, Integer page, Integer size) {
@@ -153,17 +158,13 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 		if (StringUtils.hasText(methodText)) {
 			Method method = getMappedMethod(domainClass, methodText);
 			if (method == null) {
-				throw new RepositoryException(String.format("实体%s的数据工厂不存在搜索方法 %s。", domainClass.getSimpleName(), methodText));
+			    String message = String.format("实体%s的数据工厂不存在搜索方法 %s。", domainClass.getSimpleName(), methodText);
+				throw new RepositoryException(message);
 			}
-			Object queryResult = invoker.invokeQueryMethod(method, params, pageable, pageable.getSort());
-			if (queryResult instanceof Page) {
-				return (Page<T>) queryResult;
-			}
-			if (queryResult instanceof List) {
-				List<T> result = (List<T>)queryResult;
-				return new PageImpl<T>(result, pageable, result.size());
-			}
-			return new PageImpl<T>((List<T>) Collections.singletonList(queryResult), pageable, 1);
+			Optional<Object> optional = invoker.invokeQueryMethod(method, params, pageable, pageable.getSort());
+			Page<?> pageData = optional.map(result -> toPage(result, pageable))
+			        .orElse(new PageImpl<>(Collections.singletonList(null)));
+			return (Page<T>)pageData;
 		}
 		QueryEventSource source = new QueryEventSource(domainClass, pageable, params);
 		this.publisher.publishEvent(new RepositoryEvent(source));
@@ -172,6 +173,17 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 			pageData = (Page<T>) invoker.invokeFindAll(pageable);
 		}
 		return pageData;
+	}
+	
+    private static Page<?> toPage(Object queryResult, Pageable pageable) {
+	    if (queryResult instanceof Page) {
+            return (Page<?>) queryResult;
+        }
+        if (queryResult instanceof List) {
+            List<?> result = (List<?>)queryResult;
+            return new PageImpl<>(result, pageable, result.size());
+        }
+        return new PageImpl<>((List<?>) Collections.singletonList(queryResult), pageable, 1);
 	}
 
 }

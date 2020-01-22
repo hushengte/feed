@@ -1,7 +1,9 @@
 package com.disciples.feed.rest;
 
-import org.springframework.context.ApplicationListener;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.event.GenericApplicationListener;
 import org.springframework.core.GenericTypeResolver;
+import org.springframework.core.ResolvableType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.MultiValueMap;
@@ -11,18 +13,22 @@ import com.disciples.feed.rest.RepositoryEvent.Type;
 /**
  * Abstract class that listens for generic {@link RepositoryEvent}s and dispatches them to a specific method based on the event type.
  */
-public abstract class AbstractRepositoryListener<T> implements ApplicationListener<RepositoryEvent> {
+public abstract class AbstractRepositoryListener<T> implements GenericApplicationListener {
 
 	private final Class<?> entityType = GenericTypeResolver.resolveTypeArgument(getClass(), AbstractRepositoryListener.class);
 
-	/*
+	@Override
+    public boolean supportsEventType(ResolvableType eventType) {
+        return eventType.resolve() == RepositoryEvent.class;
+    }
+
+    /*
 	 * (non-Javadoc)
 	 * @see org.springframework.context.ApplicationListener#onApplicationEvent(org.springframework.context.ApplicationEvent)
 	 */
 	@Override
-	@SuppressWarnings({ "unchecked" })
-	public final void onApplicationEvent(RepositoryEvent event) {
-		Type eventType = event.getEventType();
+	public void onApplicationEvent(ApplicationEvent event) {
+		Type eventType = ((RepositoryEvent)event).getEventType();
 		Object source =  event.getSource();
 		if (Type.READ == eventType) {
 			QueryEventSource qes = (QueryEventSource)source;
@@ -35,14 +41,16 @@ public abstract class AbstractRepositoryListener<T> implements ApplicationListen
 			if (null != entityType && !entityType.isAssignableFrom(srcType)) {
 				return;
 			}
+			@SuppressWarnings("unchecked")
+            T entity = (T)source;
 			if (Type.BEFORE_SAVE == eventType) {
-				onBeforeSave((T)source);
+				onBeforeSave(entity);
 			} else if (Type.AFTER_SAVE == eventType) {
-				onAfterSave((T)source);
+				onAfterSave(entity);
 			} else if (Type.BEFORE_DELETE == eventType) {
-				onBeforeDelete((T)source);
+				onBeforeDelete(entity);
 			} else if (Type.AFTER_DELETE == eventType) {
-				onAfterDelete((T)source);
+				onAfterDelete(entity);
 			}
 		}
 	}
