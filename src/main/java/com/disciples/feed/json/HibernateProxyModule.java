@@ -5,6 +5,8 @@ import java.io.IOException;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.LazyInitializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.PropertyAccessorFactory;
@@ -18,6 +20,8 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 public class HibernateProxyModule extends SimpleModule {
 
 	private static final long serialVersionUID = 1901217925118180957L;
+	
+	private static final Logger logger = LoggerFactory.getLogger(HibernateProxyModule.class);
 	
 	public HibernateProxyModule() {
 		addSerializer(new HibernateProxySerializer());
@@ -36,13 +40,15 @@ public class HibernateProxyModule extends SimpleModule {
 			LazyInitializer lazyInitializer = value.getHibernateLazyInitializer();
 			Class<?> entityClass = lazyInitializer.getPersistentClass();
 			Object entity = BeanUtils.instantiateClass(entityClass);
+			Object id = lazyInitializer.getIdentifier();
 			if (entity instanceof BaseEntity) {
-				((BaseEntity)entity).setId((Integer)lazyInitializer.getIdentifier());
+				((BaseEntity)entity).setId((Integer)id);
 			} else {
 				try {
-					PropertyAccessorFactory.forBeanPropertyAccess(entity).setPropertyValue("id", value);
+					PropertyAccessorFactory.forBeanPropertyAccess(entity).setPropertyValue("id", id);
 				} catch (BeansException e) {
-					//ignore
+				    logger.error("Set entity id failed: class={}, id={}, error={}", 
+				            entityClass.getName(), id, e.getMessage());
 				}
 			}
 			gen.writeObject(entity);
