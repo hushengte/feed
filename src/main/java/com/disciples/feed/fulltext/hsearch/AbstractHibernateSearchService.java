@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.PreDestroy;
 import javax.transaction.Synchronization;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -117,7 +118,7 @@ public abstract class AbstractHibernateSearchService implements FullTextService 
         //查询总数
         int total = hsQuery.queryResultSize();
         if (total == 0) {
-            return new PageImpl<T>(Collections.<T>emptyList(), pageable, 0);
+            return new PageImpl<>(Collections.<T>emptyList());
         }
         Set<String> projections = query.getProjections();
         if (!CollectionUtils.isEmpty(projections)) {
@@ -232,6 +233,11 @@ public abstract class AbstractHibernateSearchService implements FullTextService 
             worker.performWork(work, txContext);
         }
         worker.flushWorks(txContext);
+    }
+    
+    @PreDestroy
+    public void shutdown() {
+        extendedIntegrator.close();
     }
     
     static enum EmptyTransactionContext implements TransactionContext {

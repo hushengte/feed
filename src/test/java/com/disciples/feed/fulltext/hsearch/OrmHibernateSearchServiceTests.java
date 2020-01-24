@@ -4,10 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,12 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
-import org.springframework.jdbc.datasource.init.ScriptException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.disciples.feed.config.FullTextConfig;
-import com.disciples.feed.config.ServiceConfig;
+import com.disciples.feed.config.HibernateSearchConfig;
 import com.disciples.feed.dao.BookDao;
 import com.disciples.feed.dao.PublisherDao;
 import com.disciples.feed.domain.Book;
@@ -32,7 +28,7 @@ import com.disciples.feed.domain.Publisher;
 import com.disciples.feed.fulltext.FullTextQuery;
 import com.disciples.feed.fulltext.FullTextService;
 
-@ContextConfiguration(classes = {ServiceConfig.class, FullTextConfig.class})
+@ContextConfiguration(classes = {HibernateSearchConfig.class, FullTextConfig.class})
 @RunWith(SpringRunner.class)
 public class OrmHibernateSearchServiceTests {
 
@@ -52,27 +48,25 @@ public class OrmHibernateSearchServiceTests {
     
     @Test
     public void testReindex_Query() {
-        try (Connection connection = dataSource.getConnection()) {
-            new ResourceDatabasePopulator(new ClassPathResource("/data.sql")).populate(connection);
-            
-            fullTextService.reindex(Publisher.class, Book.class);
-            
-            FullTextQuery<Publisher> pquery = FullTextQuery.create(Publisher.class, "Sebastopol")
-                    .withFields("place").setMaxResults(10);
-            Page<Publisher> publisherData = fullTextService.query(pquery);
-            assertEquals(4, publisherData.getTotalElements());
-            
-            FullTextQuery<Book> bquery = FullTextQuery.create(Book.class, "福音")
-                    .withFields("name").setMaxResults(10).withAssociations("publisher");
-            Page<Book> bookData = fullTextService.query(bquery);
-            assertEquals(2, bookData.getTotalElements());
-            for (Book book : bookData) {
-                assertNotNull(book.getId());
-                assertNotNull(book.getName());
-                assertNotNull(book.getPublisher());
-            }
-        } catch (ScriptException | SQLException e) {
-            fail();
+        ResourceDatabasePopulator populator = new ResourceDatabasePopulator(new ClassPathResource("/data.sql"));
+        populator.setSqlScriptEncoding("UTF-8");
+        populator.execute(dataSource);
+        
+        fullTextService.reindex(Publisher.class, Book.class);
+        
+        FullTextQuery<Publisher> pquery = FullTextQuery.create(Publisher.class, "Sebastopol")
+                .withFields("place").setMaxResults(10);
+        Page<Publisher> publisherData = fullTextService.query(pquery);
+        assertEquals(4, publisherData.getTotalElements());
+        
+        FullTextQuery<Book> bquery = FullTextQuery.create(Book.class, "福音")
+                .withFields("name").setMaxResults(10).withAssociations("publisher");
+        Page<Book> bookData = fullTextService.query(bquery);
+        assertEquals(2, bookData.getTotalElements());
+        for (Book book : bookData) {
+            assertNotNull(book.getId());
+            assertNotNull(book.getName());
+            assertNotNull(book.getPublisher());
         }
     }
     

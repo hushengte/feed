@@ -10,7 +10,6 @@ import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -24,10 +23,9 @@ import com.disciples.feed.repository.DefaultJpaRepository;
 
 @Configuration
 @Import(DataSourceConfig.class)
-@PropertySource("classpath:application.properties")
 @EnableJpaRepositories(basePackages = "com.disciples.feed.dao", repositoryBaseClass = DefaultJpaRepository.class)
 @EnableTransactionManagement(proxyTargetClass = true)
-public class ServiceConfig {
+public class HibernateSearchConfig {
     
     @Autowired
     private DataSource dataSource;
@@ -40,7 +38,7 @@ public class ServiceConfig {
 		factoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
 		try {
 			PropertiesFactoryBean appPropertiesFactory = new PropertiesFactoryBean();
-			appPropertiesFactory.setLocation(new ClassPathResource("application.properties"));
+			appPropertiesFactory.setLocation(new ClassPathResource("/hibernate-search.properties"));
 			appPropertiesFactory.afterPropertiesSet();
 			factoryBean.setJpaProperties(appPropertiesFactory.getObject());
 			factoryBean.afterPropertiesSet();

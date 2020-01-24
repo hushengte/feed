@@ -20,14 +20,14 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ReflectionUtils;
 
+import com.disciples.feed.config.HibernateConfig;
 import com.disciples.feed.config.RepositoryConfiguration;
-import com.disciples.feed.config.ServiceConfig;
 import com.disciples.feed.dao.BookDao;
 import com.disciples.feed.dao.PublisherDao;
 import com.disciples.feed.domain.Book;
 import com.disciples.feed.domain.Publisher;
 
-@ContextConfiguration(classes = {ServiceConfig.class, RepositoryConfiguration.class})
+@ContextConfiguration(classes = {HibernateConfig.class, RepositoryConfiguration.class})
 @RunWith(SpringRunner.class)
 public class RepositoryServiceTest {
 
@@ -44,8 +44,15 @@ public class RepositoryServiceTest {
 	    assertEquals(Publisher.class, repositoryService.getDomainClass("publisher"));
 	}
 	
+	private void cleanData() {
+	    bookDao.deleteAll();
+	    publisherDao.deleteAll();
+	}
+	
 	@Test
 	public void testGetKeyValues() {
+	    cleanData();
+	    
 	    List<?> bookKvs = repositoryService.getKeyValues(Book.class, null);
 	    assertTrue(bookKvs.isEmpty());
 	    
@@ -83,6 +90,8 @@ public class RepositoryServiceTest {
     
 	@Test
 	public void testSave_Delete_FindPageableWithMethod() {
+	    cleanData();
+	    
 	    Book book = createOneBook();
 	    Publisher publisher = book.getPublisher();
 		Page<Book> pageData = repositoryService.find(Book.class, 0, 10);
