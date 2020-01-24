@@ -14,7 +14,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import org.hibernate.search.annotations.Analyzer;
-import org.hibernate.search.annotations.Boost;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
@@ -22,7 +21,6 @@ import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Store;
 import org.wltea.analyzer.lucene.IKAnalyzer;
 
-import com.disciples.feed.AuthorAnalyzer;
 import com.disciples.feed.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 
@@ -55,9 +53,14 @@ public class Book extends BaseEntity {
         this.setId(id);
     }
 
+    public Book(String name, String author, Publisher publisher) {
+        this.name = name;
+        this.author = author;
+        this.publisher = publisher;
+    }
+
     @Column(nullable = false)
     @Field(store = Store.YES)
-    @Boost(value = 1.5f)
     public String getName() {
         return name;
     }
@@ -67,7 +70,7 @@ public class Book extends BaseEntity {
     }
 
     @Column(length = 512)
-    @Field(store = Store.YES, analyzer = @Analyzer(impl = AuthorAnalyzer.class))
+    @Field(store = Store.YES)
     @JsonRawValue
     public String getAuthor() {
         return author;

@@ -31,9 +31,9 @@
 		<spring-data-jpa.version>2.1.2.RELEASE</spring-data-jpa.version>
 		<spring-data-solr.version>2.0.4.RELEASE</spring-data-solr.version>
         <hibernate-jpa-api.version>1.0.0.Final</hibernate-jpa-api.version>
-		<hibernate.version>4.3.9.Final</hibernate.version>
-		<hibernate-search.version>5.2.0.Final</hibernate-search.version>
-		<lucene.version>4.10.4</lucene.version>
+        <hibernate.version>4.3.9.Final</hibernate.version>
+        <hibernate-search.version>5.2.0.Final</hibernate-search.version>
+        <lucene.version>4.10.4</lucene.version>
         
         <h2.version>1.4.192</h2.version>
 	</properties>
@@ -99,6 +99,12 @@
 			<version>${hibernate.version}</version>
 			<optional>true</optional>
 		</dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-search-engine</artifactId>
+            <version>${hibernate-search.version}</version>
+            <optional>true</optional>
+        </dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-search-orm</artifactId>
@@ -106,6 +112,12 @@
 			<optional>true</optional>
 		</dependency>
         
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-core</artifactId>
+            <version>${lucene.version}</version>
+            <optional>true</optional>
+        </dependency>
 		<dependency>
 		  	<groupId>org.apache.lucene</groupId>
 		  	<artifactId>lucene-highlighter</artifactId>

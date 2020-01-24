@@ -313,10 +313,7 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         String sql = String.format(QUERY_FIND_BY_SINGLE_COLUMN, tableName, idName);
         logger.debug(sql);
         List<T> resultList = jdbcTemplate.query(sql, new Object[] {id}, mappingContext);
-        if (resultList.size() == 0) {
-            return null;
-        }
-        return Optional.of(resultList.get(0));
+        return Optional.ofNullable(resultList.size() > 0 ? resultList.get(0) : null);
     }
 
     /*
@@ -356,7 +353,7 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
         return jdbcTemplate.query(sql, mappingContext, args);
     }
     
-    public List<T> findBySql(String sql, Object... args){
+    public List<T> findBySql(String sql, Object... args) {
     	logger.debug(sql);
     	return jdbcTemplate.query(sql, mappingContext, args);
     }

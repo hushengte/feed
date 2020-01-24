@@ -15,7 +15,7 @@ import org.springframework.util.ClassUtils;
 public class FullTextConfigurationSelector implements ImportSelector {
 	
 	private static final boolean hibernateSearchPresent = ClassUtils.isPresent(
-			"org.hibernate.search.jpa.FullTextEntityManager", FullTextConfigurationSelector.class.getClassLoader());
+			"org.hibernate.search.spi.SearchIntegrator", FullTextConfigurationSelector.class.getClassLoader());
 	
 	private static final boolean solrPresent = ClassUtils.isPresent(
 			"org.apache.solr.client.solrj.SolrClient", FullTextConfigurationSelector.class.getClassLoader());

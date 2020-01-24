@@ -2,12 +2,14 @@ package com.disciples.feed.annotation;
 
 import javax.persistence.EntityManagerFactory;
 
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.search.hcore.impl.SearchFactoryReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.disciples.feed.fulltext.FullTextService;
-import com.disciples.feed.fulltext.HibernateSearchService;
+import com.disciples.feed.fulltext.hsearch.OrmHibernateSearchService;
 
 /**
  * {@code @Configuration} class that registers the Spring infrastructure beans necessary to enable 
@@ -25,7 +27,10 @@ public class HibernateSearchServiceConfiguration extends AbstractFullTextConfigu
 
 	@Bean
 	public FullTextService fullTextService() {
-		return new HibernateSearchService(entityManagerFactory);
+	    SessionFactoryImplementor factoryImpl = entityManagerFactory.unwrap(SessionFactoryImplementor.class);
+        SearchFactoryReference searchFactoryRef = factoryImpl.getServiceRegistry()
+                .getService(SearchFactoryReference.class);
+        return new OrmHibernateSearchService(entityManagerFactory, searchFactoryRef.getSearchIntegrator());
 	}
 	
 }
