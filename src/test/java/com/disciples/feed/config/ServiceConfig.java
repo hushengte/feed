@@ -3,15 +3,16 @@ package com.disciples.feed.config;
 import java.io.IOException;
 
 import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseFactory;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
@@ -22,22 +23,19 @@ import com.disciples.feed.domain.Book;
 import com.disciples.feed.repository.DefaultJpaRepository;
 
 @Configuration
+@Import(DataSourceConfig.class)
 @PropertySource("classpath:application.properties")
 @EnableJpaRepositories(basePackages = "com.disciples.feed.dao", repositoryBaseClass = DefaultJpaRepository.class)
 @EnableTransactionManagement(proxyTargetClass = true)
 public class ServiceConfig {
-	
-    @Bean
-    public EmbeddedDatabase dataSource() {
-        EmbeddedDatabaseFactory databaseFactory = new EmbeddedDatabaseFactory();
-        databaseFactory.setDatabaseConfigurer(H2EmbeddedDatabaseConfigurer.getInstance());
-        return databaseFactory.getDatabase();
-    }
     
+    @Autowired
+    private DataSource dataSource;
+	
     @Bean
 	public EntityManagerFactory entityManagerFactory() {
 		LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
-		factoryBean.setDataSource(dataSource());
+		factoryBean.setDataSource(dataSource);
 		factoryBean.setPackagesToScan(Book.class.getPackage().getName());
 		factoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
 		try {
