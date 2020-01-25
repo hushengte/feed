@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import javax.annotation.Resource;
 
@@ -205,7 +204,7 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
      * @see org.springframework.data.repository.CrudRepository#save(java.lang.Iterable)
      */
     @Override
-	public <S extends T> Iterable<S> saveAll(Iterable<S> entities) {
+	public <S extends T> Iterable<S> save(Iterable<S> entities) {
 		Assert.notNull(entities, "The given entities must not be null.");
 		for (S entity : entities) {
 			save(entity);
@@ -242,7 +241,7 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
      * @see org.springframework.data.repository.CrudRepository#exists(java.io.Serializable)
      */
     @Override
-    public boolean existsById(ID id) {
+    public boolean exists(ID id) {
         Assert.notNull(id, "The given id must not be null!");
         String sql = String.format(QUERY_COUNT_BY_SINGLE_COLUMN, tableName, idName);
         logger.debug(sql);
@@ -291,7 +290,7 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
     public Page<T> findAll(Pageable pageable) {
     	if (pageable == null) {
     		List<T> result = findAll();
-    		return new PageImpl<T>(result, Pageable.unpaged(), result.size());
+    		return new PageImpl<T>(result);
     	}
         List<T> contents = Collections.emptyList();
         long total = count();
@@ -308,12 +307,12 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
      * @see org.springframework.data.repository.CrudRepository#findOne(java.io.Serializable)
      */
     @Override
-    public Optional<T> findById(ID id) {
+    public T findOne(ID id) {
         Assert.notNull(id, "The given id must not be null!");
         String sql = String.format(QUERY_FIND_BY_SINGLE_COLUMN, tableName, idName);
         logger.debug(sql);
         List<T> resultList = jdbcTemplate.query(sql, new Object[] {id}, mappingContext);
-        return Optional.ofNullable(resultList.size() > 0 ? resultList.get(0) : null);
+        return resultList.size() > 0 ? resultList.get(0) : null;
     }
 
     /*
@@ -321,7 +320,7 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
      * @see org.springframework.data.repository.CrudRepository#findAll(java.lang.Iterable)
      */
     @Override
-    public List<T> findAllById(Iterable<ID> ids) {
+    public List<T> findAll(Iterable<ID> ids) {
         Assert.notNull(ids, "The given ids must not be null.");
         List<Object> args = new ArrayList<Object>();
         for (ID id : ids) {
@@ -396,7 +395,7 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
      * @see org.springframework.data.repository.CrudRepository#delete(java.io.Serializable)
      */
     @Override
-    public void deleteById(ID id) {
+    public void delete(ID id) {
         Assert.notNull(id, "The given id must not be null!");
         String sql = String.format(DELETE_BY_SINGLE_COLUMN, tableName, idName);
         logger.debug(sql);
@@ -410,7 +409,7 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
     @Override
     public void delete(T entity) {
         Assert.notNull(entity, "The entity must not be null!");
-        deleteById(entity.getId());
+        delete(entity.getId());
     }
 
     /*
@@ -418,7 +417,7 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
      * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Iterable)
      */
     @Override
-    public void deleteAll(Iterable<? extends T> entities) {
+    public void delete(Iterable<? extends T> entities) {
         Assert.notNull(entities, "The given Iterable of entities not be null!");
         List<ID> idList = new ArrayList<ID>();
         for (T entity : entities) {

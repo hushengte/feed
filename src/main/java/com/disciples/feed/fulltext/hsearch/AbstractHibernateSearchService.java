@@ -133,7 +133,7 @@ public abstract class AbstractHibernateSearchService implements FullTextService 
             Highlighter highlighter = new Highlighter(formatter, new QueryScorer(localQuery));
             doHighlight(docClass, analyzer, highlighter, content, fields);
         }
-        return new PageImpl<T>(content, pageable != null ? pageable : Pageable.unpaged(), total);
+        return new PageImpl<T>(content, pageable, total);
 	}
     
     protected abstract <T> List<T> fetchEntityList(HSQuery hsQuery, FullTextQuery<T> ftQuery);
@@ -218,7 +218,7 @@ public abstract class AbstractHibernateSearchService implements FullTextService 
     	long total = getTotalCount(docClass);
 		long batchCount = (total % batchSize == 0 ? (total / batchSize) : (total / batchSize) + 1);
 		for (int i = 0; i < batchCount; i++) {
-		    Pageable pageable = PageRequest.of(i, batchSize);
+		    Pageable pageable = new PageRequest(i, batchSize);
 		    List<T> entities = getEntityList(docClass, pageable);
 		    batchIndex(getIdMethod, entities, EmptyTransactionContext.INSTANCE);
 		}

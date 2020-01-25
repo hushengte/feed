@@ -77,7 +77,7 @@ public class OrmHibernateSearchServiceTests {
                 new Book("Test1", "John", publisher),
                 new Book("Test2", "Mark", publisher)
                 );
-        bookDao.saveAll(books);
+        bookDao.save(books);
     }
     
     @Test
