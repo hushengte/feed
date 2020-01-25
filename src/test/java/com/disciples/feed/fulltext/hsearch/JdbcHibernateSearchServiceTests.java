@@ -7,15 +7,11 @@ import static org.junit.Assert.assertTrue;
 
 import javax.sql.DataSource;
 
-import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
-import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -34,21 +30,7 @@ public class JdbcHibernateSearchServiceTests {
     @Autowired
     private DataSource dataSource;
     @Autowired
-    private JdbcOperations jdbcOperations;
-    @Autowired
-    private ExtendedSearchIntegrator searchIntegrator;
-    
     private FullTextService fullTextService;
-    
-    @Before
-    public void setUp() {
-        fullTextService = new JdbcHibernateSearchService(jdbcOperations, searchIntegrator);
-    }
-    
-    @After
-    public void tearDown() {
-        ((AbstractHibernateSearchService)fullTextService).shutdown();
-    }
     
     @Test
     public void testFullTextConfiguration() {

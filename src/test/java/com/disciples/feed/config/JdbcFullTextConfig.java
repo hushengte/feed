@@ -18,6 +18,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.disciples.feed.domain.Book;
 import com.disciples.feed.domain.Publisher;
+import com.disciples.feed.fulltext.FullTextService;
+import com.disciples.feed.fulltext.hsearch.JdbcHibernateSearchService;
 import com.disciples.feed.fulltext.hsearch.SimpleSearchConfiguration;
 
 @Configuration
@@ -36,12 +38,16 @@ public class JdbcFullTextConfig {
         List<Class<?>> docClasses = Arrays.asList(Book.class, Publisher.class);
         Properties props = new Properties();
         props.put("hibernate.search.lucene_version", "LUCENE_CURRENT");
-        props.put("hibernate.search.default.directory_provider", "org.hibernate.search.store.impl.FSDirectoryProvider");
         props.put("hibernate.search.default.indexBase", "/data/feed/jdbcindex");
         SearchConfiguration searchConfig = new SimpleSearchConfiguration(props, docClasses);
         SearchIntegrator searchIntegrator = new SearchIntegratorBuilder()
                 .configuration(searchConfig).buildSearchIntegrator();
         return searchIntegrator.unwrap(ExtendedSearchIntegrator.class);
+    }
+    
+    @Bean
+    public FullTextService fullTextService() {
+        return new JdbcHibernateSearchService(jdbcOperations(), searchIntegrator());
     }
     
 }

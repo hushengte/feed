@@ -10,9 +10,6 @@ import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.query.engine.spi.EntityInfo;
 import org.hibernate.search.query.engine.spi.HSQuery;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -44,16 +41,9 @@ public class JdbcHibernateSearchService extends AbstractHibernateSearchService {
         String[] projectedFields = hsQuery.getProjectedFields();
         if (projectedFields != null && projectedFields.length > 0) {
             List<T> results = new ArrayList<>();
+            EntityInfoToBeanConverter<T> converter = new EntityInfoToBeanConverter<>(docClass, projectedFields);
             for (EntityInfo entityInfo : entityInfos) {
-                Object[] projections = entityInfo.getProjection();
-                T result = BeanUtils.instantiateClass(docClass);
-                BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(result);
-                for (int i = 0; i < projections.length; i++) {
-                    String propertyName = projectedFields[i];
-                    Object value = projections[i];
-                    bw.setPropertyValue(propertyName, value);
-                }
-                results.add(result);
+                results.add(converter.convert(entityInfo));
             }
             return results;
         } else {
@@ -63,11 +53,19 @@ public class JdbcHibernateSearchService extends AbstractHibernateSearchService {
             }
             EntityInfo firstInfo = entityInfos.get(0);
             String placeholders = StringUtils.collectionToCommaDelimitedString(Collections.nCopies(entityIds.size(), "?"));
-            StringBuilder sql = new StringBuilder(String.format("select o.* from %s o", getTableName(docClass)));
-            sql.append(String.format(" where o.%s in (%s)", firstInfo.getIdName(), placeholders));
-            RowMapper<T> rowMapper = new BeanPropertyRowMapper<>(docClass);
+            String whereClause = String.format(" where o.%s in (%s)", firstInfo.getIdName(), placeholders);
+            String sql = fetchEntitySql(docClass).append(whereClause).toString();
+            RowMapper<T> rowMapper = getRowMapper(docClass);
             return jdbcOperations.query(sql.toString(), rowMapper, entityIds.toArray());
         }
+    }
+    
+    protected StringBuilder fetchEntitySql(Class<?> docClass) {
+        return new StringBuilder(String.format("select o.* from %s o", getTableName(docClass)));
+    }
+    
+    protected <T> RowMapper<T> getRowMapper(Class<T> docClass) {
+        return new BeanPropertyRowMapper<>(docClass);
     }
     
     public static String getTableName(Class<?> docClass) {
@@ -86,9 +84,8 @@ public class JdbcHibernateSearchService extends AbstractHibernateSearchService {
 
     @Override
     protected <T> List<T> getEntityList(Class<T> docClass, Pageable pageable) {
-        StringBuilder sql = new StringBuilder(String.format("select o.* from %s o", getTableName(docClass)));
-        sql.append(" limit ?,?");
-        RowMapper<T> rowMapper = new BeanPropertyRowMapper<>(docClass);
+        String sql = fetchEntitySql(docClass).append(" limit ?,?").toString();
+        RowMapper<T> rowMapper = getRowMapper(docClass);
         return jdbcOperations.query(sql.toString(), rowMapper, pageable.getOffset(), pageable.getPageSize());
     }
 

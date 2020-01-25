@@ -83,6 +83,7 @@ public class OrmHibernateSearchServiceTests {
     @Test
     public void testProjectionQuery() {
         initBook();
+        fullTextService.reindex(Book.class);
         
         FullTextQuery<Book> query = FullTextQuery.create(Book.class, "test")
                 .withFields("name").setMaxResults(10).addProjections("name", "author");

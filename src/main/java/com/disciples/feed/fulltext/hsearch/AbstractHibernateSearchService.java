@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.PreDestroy;
 import javax.transaction.Synchronization;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -235,7 +234,6 @@ public abstract class AbstractHibernateSearchService implements FullTextService 
         worker.flushWorks(txContext);
     }
     
-    @PreDestroy
     public void shutdown() {
         extendedIntegrator.close();
     }
