@@ -54,13 +54,13 @@ public class JdbcHibernateSearchService extends AbstractHibernateSearchService {
             EntityInfo firstInfo = entityInfos.get(0);
             String placeholders = StringUtils.collectionToCommaDelimitedString(Collections.nCopies(entityIds.size(), "?"));
             String whereClause = String.format(" where o.%s in (%s)", firstInfo.getIdName(), placeholders);
-            String sql = fetchEntitySql(docClass).append(whereClause).toString();
+            String sql = fetchEntitySqlBuilder(docClass, ftQuery).append(whereClause).toString();
             RowMapper<T> rowMapper = getRowMapper(docClass);
             return jdbcOperations.query(sql.toString(), rowMapper, entityIds.toArray());
         }
     }
     
-    protected StringBuilder fetchEntitySql(Class<?> docClass) {
+    protected <T> StringBuilder fetchEntitySqlBuilder(Class<T> docClass, FullTextQuery<T> ftQuery) {
         return new StringBuilder(String.format("select o.* from %s o", getTableName(docClass)));
     }
     
@@ -84,7 +84,7 @@ public class JdbcHibernateSearchService extends AbstractHibernateSearchService {
 
     @Override
     protected <T> List<T> getEntityList(Class<T> docClass, Pageable pageable) {
-        String sql = fetchEntitySql(docClass).append(" limit ?,?").toString();
+        String sql = fetchEntitySqlBuilder(docClass, null).append(" limit ?,?").toString();
         RowMapper<T> rowMapper = getRowMapper(docClass);
         return jdbcOperations.query(sql.toString(), rowMapper, pageable.getOffset(), pageable.getPageSize());
     }
