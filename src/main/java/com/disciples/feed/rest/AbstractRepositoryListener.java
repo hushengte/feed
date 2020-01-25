@@ -14,12 +14,24 @@ import com.disciples.feed.rest.RepositoryEvent.Type;
  * Abstract class that listens for generic {@link RepositoryEvent}s and dispatches them to a specific method based on the event type.
  */
 public abstract class AbstractRepositoryListener<T> implements GenericApplicationListener {
-
+    
+    public static final int DEFAULT_ORDER = 0;
+    
 	private final Class<?> entityType = GenericTypeResolver.resolveTypeArgument(getClass(), AbstractRepositoryListener.class);
 
 	@Override
     public boolean supportsEventType(ResolvableType eventType) {
         return eventType.resolve() == RepositoryEvent.class;
+    }
+
+    @Override
+    public int getOrder() {
+        return DEFAULT_ORDER;
+    }
+
+    @Override
+    public boolean supportsSourceType(Class<?> sourceType) {
+        return true;
     }
 
     /*
