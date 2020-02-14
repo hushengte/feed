@@ -19,9 +19,9 @@ import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Store;
-import org.wltea.analyzer.lucene.IKAnalyzer;
 
 import com.disciples.feed.BaseEntity;
+import com.disciples.feed.fulltext.ChineseAnalyzer;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 
 @SuppressWarnings("serial")
@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonRawValue;
 @Table(name = "lib_book")
 @NamedEntityGraph(name = "Book.publisher", attributeNodes = @NamedAttributeNode(value = "publisher"))
 @Indexed
-@Analyzer(impl = IKAnalyzer.class)
+@Analyzer(impl = ChineseAnalyzer.class)
 public class Book extends BaseEntity {
     
     private String name;

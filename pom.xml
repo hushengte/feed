@@ -129,13 +129,12 @@
 		  	<version>${lucene.version}</version>
 		  	<optional>true</optional>
 		</dependency>
-		<!-- maven install from https://github.com/piaolingxue/ik-analyzer.git -->
-	    <dependency>
-	    	<groupId>org.wltea</groupId>
-			<artifactId>ik-analyzer</artifactId>
-			<version>${lucene.version}</version>
-			<optional>true</optional>
-	    </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-analyzers-smartcn</artifactId>
+            <version>${lucene.version}</version>
+            <optional>true</optional>
+        </dependency>
 		
         <dependency>
             <groupId>org.slf4j</groupId>

@@ -8,15 +8,15 @@ import org.hibernate.search.annotations.Analyzer;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
-import org.wltea.analyzer.lucene.IKAnalyzer;
 
 import com.disciples.feed.BaseEntity;
+import com.disciples.feed.fulltext.ChineseAnalyzer;
 
 @SuppressWarnings("serial")
 @Entity
 @Table(name = "lib_publisher")
 @Indexed
-@Analyzer(impl = IKAnalyzer.class)
+@Analyzer(impl = ChineseAnalyzer.class)
 public class Publisher extends BaseEntity {
 	
     private String name;
