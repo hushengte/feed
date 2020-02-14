@@ -33,7 +33,7 @@
         <hibernate-jpa-api.version>1.0.0.Final</hibernate-jpa-api.version>
         <hibernate.version>4.3.9.Final</hibernate.version>
         <hibernate-search.version>5.2.0.Final</hibernate-search.version>
-        <lucene.version>4.10.4</lucene.version>
+        <lucene.version>8.4.1</lucene.version>
         
         <h2.version>1.4.192</h2.version>
 	</properties>
