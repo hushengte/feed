@@ -63,6 +63,7 @@ public class OrmHibernateSearchServiceTests {
                 .withFields("name").setMaxResults(10).withAssociations("publisher");
         Page<Book> bookData = fullTextService.query(bquery);
         assertEquals(2, bookData.getTotalElements());
+        assertEquals(bookData.getTotalElements(), bookData.getContent().size());
         for (Book book : bookData) {
             assertNotNull(book.getId());
             assertNotNull(book.getName());
@@ -86,9 +87,10 @@ public class OrmHibernateSearchServiceTests {
         fullTextService.reindex(Book.class);
         
         FullTextQuery<Book> query = FullTextQuery.create(Book.class, "test")
-                .withFields("name").setMaxResults(10).addProjections("name", "author");
+                .withFields("name").setMaxResults(1).addProjections("name", "author");
         Page<Book> pageData = fullTextService.query(query);
         assertEquals(2, pageData.getTotalElements());
+        assertEquals(query.getMaxResults(), pageData.getContent().size());
         for (Book book : pageData) {
             assertNull(book.getId());
             assertNull(book.getPublisher());

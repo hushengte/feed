@@ -50,9 +50,16 @@ public class OrmHibernateSearchService extends AbstractHibernateSearchService {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             Class<?> docClass = ftQuery.getDocClass();
+            Pageable pageable = ftQuery.getPageable();
             FullTextEntityManager fullTextEm = Search.getFullTextEntityManager(entityManager);
             org.hibernate.search.jpa.FullTextQuery fullTextQuery = fullTextEm.createFullTextQuery(
                     hsQuery.getLuceneQuery(), docClass);
+            //设置分页
+            if (pageable != null) {
+                fullTextQuery.setFirstResult((int)pageable.getOffset()).setMaxResults(pageable.getPageSize());
+            } else {
+                fullTextQuery.setFirstResult(0).setMaxResults(ftQuery.getMaxResults());
+            }
             Set<String> projections = ftQuery.getProjections();
             if (CollectionUtils.isEmpty(projections)) { 
                 //从数据库抓取
