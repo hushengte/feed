@@ -5,15 +5,20 @@ import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedAttributeNode;
 import javax.persistence.NamedEntityGraph;
 import javax.persistence.Table;
+import javax.persistence.TableGenerator;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import org.hibernate.search.annotations.Analyzer;
+import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
@@ -57,6 +62,15 @@ public class Book extends BaseEntity {
         this.name = name;
         this.author = author;
         this.publisher = publisher;
+    }
+
+    @Id
+    @DocumentId
+    @GeneratedValue(strategy = GenerationType.TABLE, generator = TABLE_GENERATOR_NAME)
+    @TableGenerator(name = TABLE_GENERATOR_NAME, allocationSize = 50)
+    @Override
+    public Integer getId() {
+        return super.getId();
     }
 
     @Column(nullable = false)

@@ -13,6 +13,7 @@ import org.hibernate.search.spi.SearchIntegratorBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -23,7 +24,8 @@ import com.disciples.feed.fulltext.hsearch.JdbcHibernateSearchService;
 import com.disciples.feed.fulltext.hsearch.SimpleSearchConfiguration;
 
 @Configuration
-public class JdbcFullTextConfig {
+@Import(DataSourceConfig.class)
+public class JdbcHibernateSearchConfig {
 
     @Autowired
     private DataSource dataSource;

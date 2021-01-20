@@ -52,12 +52,11 @@ public class SolrService implements FullTextService {
 		String keyword = ftQuery.getKeyword();
 		List<String> fields = ftQuery.getFields();
 		SimpleHighlightQuery query = new SimpleHighlightQuery(buildCriteria(fields, keyword.split("\\s")));
-		//设置分页
 		Pageable pageable = ftQuery.getPageable();
 		if (pageable != null) {
 			query.setPageRequest(pageable);
 		} else {
-			query.setOffset(0).setRows(ftQuery.getMaxResults());
+			query.setOffset(0L).setRows(ftQuery.getMaxResults());
 		}
 		
 		Set<String> projections = ftQuery.getProjections();
@@ -69,7 +68,8 @@ public class SolrService implements FullTextService {
 			options.setSimplePrefix(HILIGHT_PREFIX).setSimplePostfix(HILIGHT_POSTFIX).addField(fields.toArray(new String[fields.size()]));
 			query.setHighlightOptions(options);
 		}
-		HighlightPage<T> page = solrTemplate.queryForHighlightPage(query, docClass);
+		//FIXME: collection name
+		HighlightPage<T> page = solrTemplate.queryForHighlightPage("", query, docClass);
     	for (HighlightEntry<T> entry : page.getHighlighted()) {
     		BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(entry.getEntity());
     		List<Highlight> highlights = entry.getHighlights();

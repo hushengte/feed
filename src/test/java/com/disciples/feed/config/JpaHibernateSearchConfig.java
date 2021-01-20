@@ -18,14 +18,16 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import com.disciples.feed.annotation.EnableFullText;
 import com.disciples.feed.domain.Book;
 import com.disciples.feed.repository.DefaultJpaRepository;
 
 @Configuration
 @Import(DataSourceConfig.class)
+@EnableFullText
 @EnableJpaRepositories(basePackages = "com.disciples.feed.dao", repositoryBaseClass = DefaultJpaRepository.class)
 @EnableTransactionManagement(proxyTargetClass = true)
-public class HibernateSearchConfig {
+public class JpaHibernateSearchConfig {
     
     @Autowired
     private DataSource dataSource;

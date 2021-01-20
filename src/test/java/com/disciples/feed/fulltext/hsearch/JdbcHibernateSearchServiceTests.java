@@ -5,30 +5,25 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import javax.sql.DataSource;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.disciples.feed.config.DataSourceConfig;
-import com.disciples.feed.config.JdbcFullTextConfig;
+import com.disciples.feed.config.JdbcHibernateSearchConfig;
 import com.disciples.feed.domain.Book;
 import com.disciples.feed.domain.Publisher;
 import com.disciples.feed.fulltext.FullTextQuery;
 import com.disciples.feed.fulltext.FullTextService;
 
-@ContextConfiguration(classes = {DataSourceConfig.class, JdbcFullTextConfig.class})
+@ContextConfiguration(classes = {JdbcHibernateSearchConfig.class})
 @RunWith(SpringRunner.class)
 public class JdbcHibernateSearchServiceTests {
     
-    @Autowired
-    private DataSource dataSource;
     @Autowired
     private FullTextService fullTextService;
     
@@ -38,11 +33,8 @@ public class JdbcHibernateSearchServiceTests {
     }
     
     @Test
+    @Sql(value = "/data-jdbc.sql", config = @SqlConfig(encoding = "UTF-8"))
     public void testReindex_Query() {
-        ResourceDatabasePopulator populator = new ResourceDatabasePopulator(new ClassPathResource("/data.sql"));
-        populator.setSqlScriptEncoding("UTF-8");
-        populator.execute(dataSource);
-        
         fullTextService.reindex(Publisher.class, Book.class);
         
         FullTextQuery<Publisher> pquery = FullTextQuery.create(Publisher.class, "Sebastopol")

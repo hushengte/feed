@@ -1,7 +1,5 @@
 package com.disciples.feed.fulltext;
 
-import java.io.Reader;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
@@ -29,8 +27,8 @@ public class ChineseAnalyzer extends Analyzer {
     }
 
     @Override
-    protected TokenStreamComponents createComponents(String fieldName, Reader reader) {
-        Tokenizer tokenizer = new HMMChineseTokenizer(reader);
+    protected TokenStreamComponents createComponents(String fieldName) {
+        Tokenizer tokenizer = new HMMChineseTokenizer();
         TokenStream result = tokenizer;
         if (!stopWords.isEmpty()) {
             result = new StopFilter(result, stopWords);

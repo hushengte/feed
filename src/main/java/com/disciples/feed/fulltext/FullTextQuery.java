@@ -48,6 +48,7 @@ public class FullTextQuery<T> {
 		Assert.notNull(docClass, "docClass must not be null.");
 		this.docClass = docClass;
 		this.keyword = keyword;
+		this.pageable = Pageable.unpaged();
 	}
 	
 	public static <T> FullTextQuery<T> create(Class<T> docClass, String keyword) {

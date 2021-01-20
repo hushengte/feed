@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseFactory;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
 @Configuration
 public class DataSourceConfig {
@@ -11,7 +12,7 @@ public class DataSourceConfig {
     @Bean
     public EmbeddedDatabase dataSource() {
         EmbeddedDatabaseFactory databaseFactory = new EmbeddedDatabaseFactory();
-        databaseFactory.setDatabaseConfigurer(H2EmbeddedDatabaseConfigurer.getInstance());
+        databaseFactory.setDatabaseType(EmbeddedDatabaseType.H2);
         return databaseFactory.getDatabase();
     }
     

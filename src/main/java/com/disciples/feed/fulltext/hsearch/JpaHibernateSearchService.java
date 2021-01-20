@@ -16,8 +16,8 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.event.spi.EventSource;
 import org.hibernate.search.backend.TransactionContext;
-import org.hibernate.search.backend.impl.EventSourceTransactionContext;
 import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
+import org.hibernate.search.event.impl.EventSourceTransactionContext;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.jpa.Search;
 import org.hibernate.search.query.engine.spi.HSQuery;
@@ -33,11 +33,11 @@ import org.springframework.util.ReflectionUtils.FieldCallback;
 
 import com.disciples.feed.fulltext.FullTextQuery;
 
-public class OrmHibernateSearchService extends AbstractHibernateSearchService {
+public class JpaHibernateSearchService extends AbstractHibernateSearchService {
 
     private EntityManagerFactory entityManagerFactory;
     
-    public OrmHibernateSearchService(EntityManagerFactory entityManagerFactory, 
+    public JpaHibernateSearchService(EntityManagerFactory entityManagerFactory, 
             ExtendedSearchIntegrator extendedIntegrator) {
         super(extendedIntegrator);
         Assert.notNull(entityManagerFactory, "EntityManagerFactory is required.");
@@ -54,18 +54,19 @@ public class OrmHibernateSearchService extends AbstractHibernateSearchService {
             FullTextEntityManager fullTextEm = Search.getFullTextEntityManager(entityManager);
             org.hibernate.search.jpa.FullTextQuery fullTextQuery = fullTextEm.createFullTextQuery(
                     hsQuery.getLuceneQuery(), docClass);
-            //设置分页
-            if (pageable != null) {
+            // pagination
+            if (pageable.isPaged()) {
                 fullTextQuery.setFirstResult((int)pageable.getOffset()).setMaxResults(pageable.getPageSize());
             } else {
                 fullTextQuery.setFirstResult(0).setMaxResults(ftQuery.getMaxResults());
             }
             Set<String> projections = ftQuery.getProjections();
             if (CollectionUtils.isEmpty(projections)) { 
-                //从数据库抓取
+                // fetch from database
                 Set<String> associations = ftQuery.getAssociations();
                 if (!CollectionUtils.isEmpty(associations)) {
                     Session session = (Session)fullTextEm.getDelegate();
+                    @SuppressWarnings("deprecation")
                     Criteria rootCriteria = session.createCriteria(docClass);
                     for (String association : associations) {
                         rootCriteria.createCriteria(association, JoinType.LEFT_OUTER_JOIN);
@@ -73,7 +74,7 @@ public class OrmHibernateSearchService extends AbstractHibernateSearchService {
                     fullTextQuery.setCriteriaQuery(rootCriteria);
                 }
             } else { 
-                //从索引中抓取
+                // fetch from lucene index data
                 fullTextQuery.setProjection(projections.toArray(new String[projections.size()]));
                 fullTextQuery.setResultTransformer(new AliasToBeanResultTransformer(docClass));
             }

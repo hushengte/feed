@@ -2,7 +2,6 @@ package com.disciples.feed.rest;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Method;
@@ -107,9 +106,9 @@ public class RepositoryServiceTest {
 		assertOneBookPage(book, pageData);
 		
 		repositoryService.delete(Book.class, book.getId());
-		assertNull(bookDao.findOne(book.getId()));
+		assertTrue(!bookDao.findById(book.getId()).isPresent());
 		repositoryService.delete(Publisher.class, publisher.getId());
-		assertNull(publisherDao.findOne(publisher.getId()));
+		assertTrue(!publisherDao.findById(publisher.getId()).isPresent());
 	}
 	
 	private void assertOneBookPage(Book book, Page<Book> pageData) {

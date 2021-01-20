@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.support.DefaultRepositoryInvokerFactory;
 import org.springframework.data.repository.support.Repositories;
@@ -54,9 +56,9 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 			repositoryClassCache.put(key, type);
 			
 			Map<String, Method> methodsCache = new HashMap<String, Method>();
-			RepositoryInformation repositoryInfo = repositories.getRepositoryInformationFor(type);
-			if (repositoryInfo != null) {
-			    repositoryInfo.getQueryMethods().forEach(queryMethod -> {
+			Optional<RepositoryInformation> repositoryInfo = repositories.getRepositoryInformationFor(type);
+			if (repositoryInfo.isPresent()) {
+			    repositoryInfo.get().getQueryMethods().forEach(queryMethod -> {
 	                methodsCache.put(queryMethod.getName(), queryMethod);
 	            });
 	            repositoryMethodsCache.put(type, methodsCache);
@@ -92,10 +94,11 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 		for (Map<String, Object> data : dataList) {
 			Integer id = (Integer)data.get("id");
 			if (id != null) {
-	    		Object object = invoker.invokeFindOne(id);
-	    		if (object != null) {
+	    		Optional<?> optional = invoker.invokeFindById(id);
+	    		if (optional.isPresent()) {
+	    		    Object object = optional.get();
 	    		    publisher.publishEvent(new RepositoryEvent(object, Type.BEFORE_DELETE));
-                    invoker.invokeDelete(id);
+                    invoker.invokeDeleteById(id);
                     publisher.publishEvent(new RepositoryEvent(object, Type.AFTER_DELETE));
 	    		}
 	    	}
@@ -137,7 +140,7 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 		if (method == null) {
 			return Collections.emptyList();
 		}
-		Object result = invoker.invokeQueryMethod(method, EMPTY_PARAMS, null, null);
+		Object result = invoker.invokeQueryMethod(method, EMPTY_PARAMS, Pageable.unpaged(), Sort.unsorted()).get();
 		return (result instanceof List) ? (List<?>)result : Collections.singletonList(result);
 	}
 	
@@ -150,7 +153,7 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 		Assert.notNull(domainClass, "实体类型不能为空");
 		
 		params = params == null ? new LinkedMultiValueMap<String, Object>() : params;
-		Pageable pageable = page != null ? new PageRequest(page, size) : null;
+		Pageable pageable = page != null ? PageRequest.of(page, size) : Pageable.unpaged();
 		RepositoryInvoker invoker = invokeFactory.getInvokerFor(domainClass);
 		
 		String methodText = (String) params.getFirst("method");
@@ -160,7 +163,7 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 			    String message = String.format("实体%s的数据工厂不存在搜索方法 %s。", domainClass.getSimpleName(), methodText);
 				throw new RepositoryException(message);
 			}
-			Object result = invoker.invokeQueryMethod(method, params, pageable, null);
+			Object result = invoker.invokeQueryMethod(method, params, pageable, Sort.unsorted()).get();
 			return (Page<T>)toPage(result, pageable);
 		}
 		QueryEventSource source = new QueryEventSource(domainClass, pageable, params);

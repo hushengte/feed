@@ -3,21 +3,21 @@ package com.disciples.feed.fulltext;
 import org.springframework.data.domain.Page;
 
 /**
- * 全文检索服务
+ * Full text search service
  */
 public interface FullTextService {
 	
 	/**
-	 * 查询文档
-	 * @param <T> 文档类
-	 * @param query 查询请求
-	 * @return 结果集
+	 * Query document
+	 * @param <T> Document class type
+	 * @param query A FullTextQuery
+	 * @return A page of document
 	 */
 	<T> Page<T> query(FullTextQuery<T> query);
 	
 	/**
-	 * 重建索引
-	 * @param docClasses 文档类
+	 * Rebuild document index
+	 * @param docClasses Document classes
 	 */
 	void reindex(Class<?> ... docClasses);
 

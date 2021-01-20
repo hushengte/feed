@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS `lib_book`;
 DROP TABLE IF EXISTS `lib_publisher`;
 CREATE TABLE `lib_publisher` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -5,7 +6,7 @@ CREATE TABLE `lib_publisher` (
   `place` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`id`)
 );
-insert  into `lib_publisher`(`id`,`name`,`place`) values 
+insert into `lib_publisher`(`id`,`name`,`place`) values 
 (1,'Wiley','Hoboken, NJ'),
 (2,'OReilly','Sebastopol, CA'),
 (3,'Apress','Sebastopol, CA'),
@@ -14,7 +15,6 @@ insert  into `lib_publisher`(`id`,`name`,`place`) values
 (6,'Prentice Hall','Sebastopol, CA'),
 (7,'Libraries Unlimited','Westport, Conn.');
 
-DROP TABLE IF EXISTS `lib_book`;
 CREATE TABLE `lib_book` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `call_number` varchar(50) DEFAULT NULL,
@@ -60,11 +60,11 @@ insert into `lib_book` (`id`, `call_number`, `collation`, `create_date`, `ebook`
 ('12','B522','709页-1','2015-04-14 00:00:00',NULL,'9787806436769','2011-11-15 00:00:00','西方哲学史 第一卷：总论',NULL,'2005年',
 	'','5','[{\"names\":[\"叶秀山\",\"王树人\"],\"level\":\"著\"}]','[\"Philosophy\",\"哲学史\",\"History\"]');
 
-DROP TABLE IF EXISTS `hibernate_sequences`;
-CREATE TABLE `hibernate_sequences` (
+DROP TABLE IF EXISTS `id_increment_generator`;
+CREATE TABLE `id_increment_generator` (
   `sequence_name` varchar(255) DEFAULT NULL,
-  `sequence_next_hi_value` int(11) DEFAULT NULL
+  `next_val` int(11) DEFAULT NULL
 );
-insert  into `hibernate_sequences`(`sequence_name`,`sequence_next_hi_value`) values 
+insert into `id_increment_generator`(`sequence_name`,`next_val`) values 
 ('lib_publisher',8),
 ('lib_book',13);

@@ -17,6 +17,7 @@ import org.hibernate.search.cfg.spi.SearchConfigurationBase;
 import org.hibernate.search.engine.service.classloading.impl.DefaultClassLoaderService;
 import org.hibernate.search.engine.service.classloading.spi.ClassLoaderService;
 import org.hibernate.search.engine.service.spi.Service;
+import org.hibernate.search.spi.IndexedTypeIdentifier;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -97,17 +98,19 @@ public class SimpleSearchConfiguration extends SearchConfigurationBase {
     private class MappedClassIdUniquenessResolver implements IdUniquenessResolver {
         
         @Override
-        public boolean areIdsUniqueForClasses(Class<?> entityInIndex, Class<?> otherEntityInIndex) {
+        public boolean areIdsUniqueForClasses(IndexedTypeIdentifier firstEntity, IndexedTypeIdentifier secondEntity) {
             /*
              * Look for the top most superclass of each that is also a mapped entity
              * That should be the root entity for that given class.
              */
-            Class<?> rootOfEntityInIndex = getRootEntity( entityInIndex );
-            Class<?> rootOfOtherEntityInIndex = getRootEntity( otherEntityInIndex );
+            Class<?> rootOfEntityInIndex = getRootEntity(firstEntity);
+            Class<?> rootOfOtherEntityInIndex = getRootEntity(secondEntity);
             return rootOfEntityInIndex == rootOfOtherEntityInIndex;
         }
 
-        private Class<?> getRootEntity(Class<?> entityInIndex) {
+        private Class<?> getRootEntity(IndexedTypeIdentifier indexedTypeIdentifier) {
+            @SuppressWarnings("deprecation")
+            Class<?> entityInIndex = indexedTypeIdentifier.getPojoType();
             if (!mappedClasses.contains(entityInIndex)) {
                 // should not happen so we return the entity class itself
                 return entityInIndex;

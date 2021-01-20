@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.annotation.Resource;
 
@@ -201,10 +202,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
     
     /*
      * (non-Javadoc)
-     * @see org.springframework.data.repository.CrudRepository#save(java.lang.Iterable)
+     * @see org.springframework.data.repository.CrudRepository#saveAll(java.lang.Iterable)
      */
     @Override
-	public <S extends T> Iterable<S> save(Iterable<S> entities) {
+	public <S extends T> Iterable<S> saveAll(Iterable<S> entities) {
 		Assert.notNull(entities, "The given entities must not be null.");
 		for (S entity : entities) {
 			save(entity);
@@ -238,10 +239,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
     
     /*
      * (non-Javadoc)
-     * @see org.springframework.data.repository.CrudRepository#exists(java.io.Serializable)
+     * @see org.springframework.data.repository.CrudRepository#existsById(java.io.Serializable)
      */
     @Override
-    public boolean exists(ID id) {
+    public boolean existsById(ID id) {
         Assert.notNull(id, "The given id must not be null!");
         String sql = String.format(QUERY_COUNT_BY_SINGLE_COLUMN, tableName, idName);
         logger.debug(sql);
@@ -304,23 +305,23 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
     
     /*
      * (non-Javadoc)
-     * @see org.springframework.data.repository.CrudRepository#findOne(java.io.Serializable)
+     * @see org.springframework.data.repository.CrudRepository#findById(java.io.Serializable)
      */
     @Override
-    public T findOne(ID id) {
+    public Optional<T> findById(ID id) {
         Assert.notNull(id, "The given id must not be null!");
         String sql = String.format(QUERY_FIND_BY_SINGLE_COLUMN, tableName, idName);
         logger.debug(sql);
         List<T> resultList = jdbcTemplate.query(sql, new Object[] {id}, mappingContext);
-        return resultList.size() > 0 ? resultList.get(0) : null;
+        return Optional.ofNullable(resultList.size() > 0 ? resultList.get(0) : null);
     }
 
     /*
      * (non-Javadoc)
-     * @see org.springframework.data.repository.CrudRepository#findAll(java.lang.Iterable)
+     * @see org.springframework.data.repository.CrudRepository#findAllById(java.lang.Iterable)
      */
     @Override
-    public List<T> findAll(Iterable<ID> ids) {
+    public List<T> findAllById(Iterable<ID> ids) {
         Assert.notNull(ids, "The given ids must not be null.");
         List<Object> args = new ArrayList<Object>();
         for (ID id : ids) {
@@ -392,10 +393,10 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
 
     /*
      * (non-Javadoc)
-     * @see org.springframework.data.repository.CrudRepository#delete(java.io.Serializable)
+     * @see org.springframework.data.repository.CrudRepository#deleteById(java.io.Serializable)
      */
     @Override
-    public void delete(ID id) {
+    public void deleteById(ID id) {
         Assert.notNull(id, "The given id must not be null!");
         String sql = String.format(DELETE_BY_SINGLE_COLUMN, tableName, idName);
         logger.debug(sql);
@@ -409,15 +410,15 @@ public abstract class AbstractJdbcRepository<T extends Persistable<ID>, ID exten
     @Override
     public void delete(T entity) {
         Assert.notNull(entity, "The entity must not be null!");
-        delete(entity.getId());
+        deleteById(entity.getId());
     }
 
     /*
      * (non-Javadoc)
-     * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Iterable)
+     * @see org.springframework.data.repository.CrudRepository#deleteAll(java.lang.Iterable)
      */
     @Override
-    public void delete(Iterable<? extends T> entities) {
+    public void deleteAll(Iterable<? extends T> entities) {
         Assert.notNull(entities, "The given Iterable of entities not be null!");
         List<ID> idList = new ArrayList<ID>();
         for (T entity : entities) {

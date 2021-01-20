@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.disciples.feed.fulltext.FullTextService;
-import com.disciples.feed.fulltext.hsearch.OrmHibernateSearchService;
+import com.disciples.feed.fulltext.hsearch.JpaHibernateSearchService;
 
 /**
  * {@code @Configuration} class that registers the Spring infrastructure beans necessary to enable 
@@ -30,7 +30,7 @@ public class HibernateSearchServiceConfiguration extends AbstractFullTextConfigu
 	    SessionFactoryImplementor factoryImpl = entityManagerFactory.unwrap(SessionFactoryImplementor.class);
         SearchFactoryReference searchFactoryRef = factoryImpl.getServiceRegistry()
                 .getService(SearchFactoryReference.class);
-        return new OrmHibernateSearchService(entityManagerFactory, searchFactoryRef.getSearchIntegrator());
+        return new JpaHibernateSearchService(entityManagerFactory, searchFactoryRef.getSearchIntegrator());
 	}
 	
 }

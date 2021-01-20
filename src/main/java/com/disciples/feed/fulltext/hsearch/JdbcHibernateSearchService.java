@@ -71,7 +71,8 @@ public class JdbcHibernateSearchService extends AbstractHibernateSearchService {
     public static String getTableName(Class<?> docClass) {
         Table table = AnnotationUtils.findAnnotation(docClass, Table.class);
         if (table == null) {
-            throw new SearchException("@Table is required.");
+            throw new SearchException("Annotation @javax.persistence.Table is required for docClass: " 
+                    + docClass.getName());
         }
         return table.name();
     }

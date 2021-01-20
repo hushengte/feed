@@ -25,6 +25,7 @@ import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.query.dsl.TermMatchingContext;
 import org.hibernate.search.query.engine.spi.HSQuery;
+import org.hibernate.search.spi.impl.PojoIndexedTypeIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanWrapper;
@@ -101,20 +102,19 @@ public abstract class AbstractHibernateSearchService implements FullTextService 
     		return new PageImpl<>(Collections.<T>emptyList());
     	}
     	QueryBuilder qb = extendedIntegrator.buildQueryBuilder().forEntity(docClass).get();
-        //创建查询
+        // create query
         TermMatchingContext tmc = buildTermMatchContext(qb, fields);
         Query localQuery = tmc.matching(keyword).createQuery();
-        HSQuery hsQuery = extendedIntegrator.createHSQuery();
+        HSQuery hsQuery = extendedIntegrator.createHSQuery(localQuery, docClass);
         //TODO: timeoutExceptionFactory
-        hsQuery.luceneQuery(localQuery).targetedEntities(Collections.singletonList(docClass));
         
-        //设置分页
-        if (pageable != null) {
+        // pagination
+        if (pageable.isPaged()) {
             hsQuery.firstResult((int)pageable.getOffset()).maxResults(pageable.getPageSize());
         } else {
             hsQuery.firstResult(0).maxResults(query.getMaxResults());
         }
-        //查询总数
+        // query total count
         int total = hsQuery.queryResultSize();
         if (total == 0) {
             return new PageImpl<>(Collections.<T>emptyList());
@@ -123,13 +123,13 @@ public abstract class AbstractHibernateSearchService implements FullTextService 
         if (!CollectionUtils.isEmpty(projections)) {
             hsQuery.projection(projections.toArray(new String[projections.size()]));
         }
-        //抓取数据
+        // fetch data
         hsQuery.getTimeoutManager().start();
         List<T> content = fetchEntityList(hsQuery, query);
         hsQuery.getTimeoutManager().stop();
         
         if (query.isHighlight()) {
-            Analyzer analyzer = extendedIntegrator.getAnalyzer(docClass);
+            Analyzer analyzer = extendedIntegrator.getAnalyzer(new PojoIndexedTypeIdentifier(docClass));
             Highlighter highlighter = new Highlighter(formatter, new QueryScorer(localQuery));
             doHighlight(docClass, analyzer, highlighter, content, fields);
         }
@@ -218,7 +218,7 @@ public abstract class AbstractHibernateSearchService implements FullTextService 
     	long total = getTotalCount(docClass);
 		long batchCount = (total % batchSize == 0 ? (total / batchSize) : (total / batchSize) + 1);
 		for (int i = 0; i < batchCount; i++) {
-		    Pageable pageable = new PageRequest(i, batchSize);
+		    Pageable pageable = PageRequest.of(i, batchSize);
 		    List<T> entities = getEntityList(docClass, pageable);
 		    batchIndex(getIdMethod, entities, EmptyTransactionContext.INSTANCE);
 		}

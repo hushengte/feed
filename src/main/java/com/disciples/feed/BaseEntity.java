@@ -11,13 +11,13 @@ public abstract class BaseEntity implements Identifiable<Integer> {
 
     private static final long serialVersionUID = 2436149785969523480L;
     
-    public static final String TABLE_GENERATOR_NAME = "ID_INCREMENT_GENERATOR";
+    public static final String TABLE_GENERATOR_NAME = "id_increment_generator";
     
     private Integer id;
 
     @Id
     @GeneratedValue(strategy = GenerationType.TABLE, generator = TABLE_GENERATOR_NAME)
-    @TableGenerator(name = TABLE_GENERATOR_NAME, allocationSize = 1)
+    @TableGenerator(name = TABLE_GENERATOR_NAME, allocationSize = 50)
     @Override
     public Integer getId() {
         return id;

@@ -24,7 +24,7 @@ public class DefaultJpaRepository<T, ID extends Serializable> extends SimpleJpaR
 
     @Override
     @Transactional
-    public <S extends T> List<S> save(Iterable<S> entities) {
+    public <S extends T> List<S> saveAll(Iterable<S> entities) {
         List<S> result = new ArrayList<S>();
         if (entities == null) {
             return result;

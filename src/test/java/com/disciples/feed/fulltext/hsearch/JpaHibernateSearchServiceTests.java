@@ -8,19 +8,16 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.sql.DataSource;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.disciples.feed.config.FullTextConfig;
-import com.disciples.feed.config.HibernateSearchConfig;
+import com.disciples.feed.config.JpaHibernateSearchConfig;
 import com.disciples.feed.dao.BookDao;
 import com.disciples.feed.dao.PublisherDao;
 import com.disciples.feed.domain.Book;
@@ -28,12 +25,10 @@ import com.disciples.feed.domain.Publisher;
 import com.disciples.feed.fulltext.FullTextQuery;
 import com.disciples.feed.fulltext.FullTextService;
 
-@ContextConfiguration(classes = {HibernateSearchConfig.class, FullTextConfig.class})
+@ContextConfiguration(classes = {JpaHibernateSearchConfig.class})
 @RunWith(SpringRunner.class)
-public class OrmHibernateSearchServiceTests {
+public class JpaHibernateSearchServiceTests {
 
-    @Autowired
-    private DataSource dataSource;
     @Autowired
     private BookDao bookDao;
     @Autowired
@@ -43,15 +38,12 @@ public class OrmHibernateSearchServiceTests {
     
     @Test
     public void testFullTextConfigurationSelector() {
-        assertTrue(fullTextService instanceof OrmHibernateSearchService);
+        assertTrue(fullTextService instanceof JpaHibernateSearchService);
     }
     
     @Test
+    @Sql(value = "/data-jpa.sql", config = @SqlConfig(encoding = "UTF-8"))
     public void testReindex_Query() {
-        ResourceDatabasePopulator populator = new ResourceDatabasePopulator(new ClassPathResource("/data.sql"));
-        populator.setSqlScriptEncoding("UTF-8");
-        populator.execute(dataSource);
-        
         fullTextService.reindex(Publisher.class, Book.class);
         
         FullTextQuery<Publisher> pquery = FullTextQuery.create(Publisher.class, "Sebastopol")
@@ -78,7 +70,7 @@ public class OrmHibernateSearchServiceTests {
                 new Book("Test1", "John", publisher),
                 new Book("Test2", "Mark", publisher)
                 );
-        bookDao.save(books);
+        bookDao.saveAll(books);
     }
     
     @Test
