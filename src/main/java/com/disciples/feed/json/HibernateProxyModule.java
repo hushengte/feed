@@ -38,20 +38,24 @@ public class HibernateProxyModule extends SimpleModule {
 		@Override
 		public void serialize(HibernateProxy value, JsonGenerator gen, SerializerProvider provider) throws IOException {
 			LazyInitializer lazyInitializer = value.getHibernateLazyInitializer();
-			Class<?> entityClass = lazyInitializer.getPersistentClass();
-			Object entity = BeanUtils.instantiateClass(entityClass);
-			Object id = lazyInitializer.getIdentifier();
-			if (entity instanceof BaseEntity) {
-				((BaseEntity)entity).setId((Integer)id);
+			if (lazyInitializer.isUninitialized()) {
+			    Class<?> entityClass = lazyInitializer.getPersistentClass();
+	            Object entity = BeanUtils.instantiateClass(entityClass);
+	            Object id = lazyInitializer.getIdentifier();
+	            if (entity instanceof BaseEntity) {
+	                ((BaseEntity)entity).setId((Integer)id);
+	            } else {
+	                try {
+	                    PropertyAccessorFactory.forBeanPropertyAccess(entity).setPropertyValue("id", id);
+	                } catch (BeansException e) {
+	                    logger.error("Set entity id failed: class={}, id={}, error={}", 
+	                            entityClass.getName(), id, e.getMessage());
+	                }
+	            }
+	            gen.writeObject(entity);
 			} else {
-				try {
-					PropertyAccessorFactory.forBeanPropertyAccess(entity).setPropertyValue("id", id);
-				} catch (BeansException e) {
-				    logger.error("Set entity id failed: class={}, id={}, error={}", 
-				            entityClass.getName(), id, e.getMessage());
-				}
+			    gen.writeObject(lazyInitializer.getImplementation());
 			}
-			gen.writeObject(entity);
 		}
 	}
 	
