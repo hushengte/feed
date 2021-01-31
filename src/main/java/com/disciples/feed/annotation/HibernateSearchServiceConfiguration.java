@@ -4,7 +4,6 @@ import javax.persistence.EntityManagerFactory;
 
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.search.hcore.impl.SearchFactoryReference;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -19,14 +18,11 @@ import com.disciples.feed.fulltext.hsearch.JpaHibernateSearchService;
  * @see com.disciples.feed.annotation.EnableFullText
  * @see com.disciples.feed.annotation.FullTextConfigurationSelector
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class HibernateSearchServiceConfiguration extends AbstractFullTextConfiguration {
 	
-	@Autowired
-	private EntityManagerFactory entityManagerFactory;
-
 	@Bean
-	public FullTextService fullTextService() {
+	public FullTextService fullTextService(EntityManagerFactory entityManagerFactory) {
 	    SessionFactoryImplementor factoryImpl = entityManagerFactory.unwrap(SessionFactoryImplementor.class);
         SearchFactoryReference searchFactoryRef = factoryImpl.getServiceRegistry()
                 .getService(SearchFactoryReference.class);

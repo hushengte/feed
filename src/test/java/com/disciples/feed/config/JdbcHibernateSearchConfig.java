@@ -10,7 +10,6 @@ import org.hibernate.search.cfg.spi.SearchConfiguration;
 import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.spi.SearchIntegrator;
 import org.hibernate.search.spi.SearchIntegratorBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -23,15 +22,12 @@ import com.disciples.feed.fulltext.FullTextService;
 import com.disciples.feed.fulltext.hsearch.JdbcHibernateSearchService;
 import com.disciples.feed.fulltext.hsearch.SimpleSearchConfiguration;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @Import(DataSourceConfig.class)
 public class JdbcHibernateSearchConfig {
 
-    @Autowired
-    private DataSource dataSource;
-    
     @Bean
-    public JdbcOperations jdbcOperations() {
+    public JdbcOperations jdbcOperations(DataSource dataSource) {
         return new JdbcTemplate(dataSource);
     }
     
@@ -48,8 +44,8 @@ public class JdbcHibernateSearchConfig {
     }
     
     @Bean
-    public FullTextService fullTextService() {
-        return new JdbcHibernateSearchService(jdbcOperations(), searchIntegrator());
+    public FullTextService fullTextService(JdbcOperations jdbcOperations, ExtendedSearchIntegrator searchIntegrator) {
+        return new JdbcHibernateSearchService(jdbcOperations, searchIntegrator);
     }
     
 }

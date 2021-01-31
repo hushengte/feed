@@ -1,6 +1,5 @@
 package com.disciples.feed.annotation;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.solr.core.SolrTemplate;
@@ -16,14 +15,11 @@ import com.disciples.feed.fulltext.SolrService;
  * @see com.disciples.feed.annotation.EnableFullText
  * @see com.disciples.feed.annotation.FullTextConfigurationSelector
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class SolrServiceConfiguration extends AbstractFullTextConfiguration {
 	
-	@Autowired
-	private SolrTemplate solrTemplate;
-
 	@Bean
-	public FullTextService fullTextService() {
+	public FullTextService fullTextService(SolrTemplate solrTemplate) {
 		return new SolrService(solrTemplate);
 	}
 	

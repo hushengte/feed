@@ -5,7 +5,6 @@ import java.io.IOException;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,18 +21,15 @@ import com.disciples.feed.annotation.EnableFullText;
 import com.disciples.feed.domain.Book;
 import com.disciples.feed.repository.DefaultJpaRepository;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @Import(DataSourceConfig.class)
 @EnableFullText
 @EnableJpaRepositories(basePackages = "com.disciples.feed.dao", repositoryBaseClass = DefaultJpaRepository.class)
 @EnableTransactionManagement(proxyTargetClass = true)
 public class JpaHibernateSearchConfig {
     
-    @Autowired
-    private DataSource dataSource;
-	
     @Bean
-	public EntityManagerFactory entityManagerFactory() {
+	public EntityManagerFactory entityManagerFactory(DataSource dataSource) {
 		LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
 		factoryBean.setDataSource(dataSource);
 		factoryBean.setPackagesToScan(Book.class.getPackage().getName());
@@ -51,9 +47,9 @@ public class JpaHibernateSearchConfig {
 	}
 	
 	@Bean
-    public PlatformTransactionManager transactionManager() {
+    public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
         JpaTransactionManager transactionManager = new JpaTransactionManager();
-        transactionManager.setEntityManagerFactory(entityManagerFactory());
+        transactionManager.setEntityManagerFactory(entityManagerFactory);
         return transactionManager;
     }
 	

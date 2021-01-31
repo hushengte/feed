@@ -6,7 +6,7 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseFactory;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class DataSourceConfig {
 
     @Bean

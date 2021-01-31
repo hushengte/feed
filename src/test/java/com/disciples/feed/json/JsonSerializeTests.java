@@ -91,6 +91,7 @@ public class JsonSerializeTests {
         BDDMockito.given(proxyEntity.getHibernateLazyInitializer()).willReturn(lazyInitializer);
         BDDMockito.given(lazyInitializer.getIdentifier()).willReturn(proxyId);
         BDDMockito.given(lazyInitializer.getPersistentClass()).willReturn(entityClass);
+        BDDMockito.given(lazyInitializer.isUninitialized()).willReturn(true);
 
         String json = toJson(proxyEntity);
         Map<?, ?> dataMap = parseJson(json, Map.class);
@@ -98,6 +99,7 @@ public class JsonSerializeTests {
         Mockito.verify(proxyEntity).getHibernateLazyInitializer();
         Mockito.verify(lazyInitializer).getIdentifier();
         Mockito.verify(lazyInitializer).getPersistentClass();
+        Mockito.verify(lazyInitializer).isUninitialized();
         Mockito.verifyNoMoreInteractions(proxyEntity);
         Mockito.verifyNoMoreInteractions(lazyInitializer);
     }

@@ -44,6 +44,7 @@ public class FileDownloadView extends AbstractView {
     /**
      * Create a new {@link FileDownloadView} with default Content-type: {@link AbstractView#DEFAULT_CONTENT_TYPE}
      * @param file The file to download.
+     * @return A FileDownloadView
      */
     public static FileDownloadView of(File file) {
         return new FileDownloadView(file, null);
@@ -53,6 +54,7 @@ public class FileDownloadView extends AbstractView {
      * Create a new {@link FileDownloadView} with content-type
      * @param file The file to download.
      * @param contentType Content-Type of the file.
+     * @return A FileDownloadView
      */
     public static FileDownloadView of(File file, String contentType) {
         return new FileDownloadView(file, contentType);
@@ -61,6 +63,7 @@ public class FileDownloadView extends AbstractView {
     /**
      * Create a new {@link FileDownloadView} with Content-type: {@link MediaType#APPLICATION_OCTET_STREAM_VALUE}
      * @param file The file to download.
+     * @return A FileDownloadView
      */
     public static FileDownloadView stream(File file) {
         return new FileDownloadView(file, MediaType.APPLICATION_OCTET_STREAM_VALUE);
@@ -69,6 +72,7 @@ public class FileDownloadView extends AbstractView {
     /**
      * Create a new {@link FileDownloadView} with Content-type: {@link MediaType#TEXT_PLAIN_VALUE}
      * @param file The file to download.
+     * @return A FileDownloadView
      */
     public static FileDownloadView text(File file) {
         return new FileDownloadView(file, MediaType.TEXT_PLAIN_VALUE);
@@ -77,6 +81,7 @@ public class FileDownloadView extends AbstractView {
     /**
      * Create a new {@link FileDownloadView} with Content-type: {@link FileDownloadView#CONTENT_TYPE_EXCEL}
      * @param file The file to download.
+     * @return A FileDownloadView
      */
     public static FileDownloadView excel(File file) {
         return new FileDownloadView(file, CONTENT_TYPE_EXCEL);
@@ -85,6 +90,7 @@ public class FileDownloadView extends AbstractView {
     /**
      * Create a new {@link FileDownloadView} with Content-type: {@link MediaType#APPLICATION_PDF_VALUE}
      * @param file The file to download.
+     * @return A FileDownloadView
      */
     public static FileDownloadView pdf(File file) {
         return new FileDownloadView(file, MediaType.APPLICATION_PDF_VALUE);
@@ -93,6 +99,7 @@ public class FileDownloadView extends AbstractView {
     /**
      * Create a new {@link FileDownloadView} with Content-type: {@link MediaType#IMAGE_JPEG_VALUE}
      * @param file The file to download.
+     * @return A FileDownloadView
      */
     public static FileDownloadView jpeg(File file) {
         return new FileDownloadView(file, MediaType.IMAGE_JPEG_VALUE);
@@ -101,6 +108,7 @@ public class FileDownloadView extends AbstractView {
     /**
      * Create a new {@link FileDownloadView} with Content-type: {@link MediaType#IMAGE_GIF_VALUE}
      * @param file The file to download.
+     * @return A FileDownloadView
      */
     public static FileDownloadView gif(File file) {
         return new FileDownloadView(file, MediaType.IMAGE_GIF_VALUE);
@@ -109,6 +117,7 @@ public class FileDownloadView extends AbstractView {
     /**
      * Create a new {@link FileDownloadView} with Content-type: {@link MediaType#IMAGE_PNG_VALUE}
      * @param file The file to download.
+     * @return A FileDownloadView
      */
     public static FileDownloadView png(File file) {
         return new FileDownloadView(file, MediaType.IMAGE_PNG_VALUE);
