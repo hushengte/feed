@@ -1,6 +1,5 @@
 package com.disciples.feed.fulltext.hsearch;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -17,9 +16,6 @@ import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.backend.TransactionContext;
-import org.hibernate.search.backend.spi.Work;
-import org.hibernate.search.backend.spi.WorkType;
-import org.hibernate.search.backend.spi.Worker;
 import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.query.dsl.QueryBuilder;
@@ -33,7 +29,6 @@ import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -48,11 +43,9 @@ public abstract class AbstractHibernateSearchService implements FullTextService 
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractHibernateSearchService.class);
     
     private static final float MAX_BOOST = 2.0f;
-    private static final int DEFAULT_BATCH_SIZE = 1000;
     
     private ExtendedSearchIntegrator extendedIntegrator;
     private Formatter formatter;
-    private int batchSize = DEFAULT_BATCH_SIZE;
     
     public AbstractHibernateSearchService(ExtendedSearchIntegrator extendedIntegrator) {
     	this(extendedIntegrator, new SimpleHTMLFormatter("<b><font color='red'>", "</font></b>"));
@@ -63,6 +56,10 @@ public abstract class AbstractHibernateSearchService implements FullTextService 
         this.extendedIntegrator = extendedIntegrator;
         setFormatter(formatter);
     }
+    
+    public ExtendedSearchIntegrator getExtendedIntegrator() {
+        return extendedIntegrator;
+    }
 
     public Formatter getFormatter() {
         return formatter;
@@ -71,15 +68,6 @@ public abstract class AbstractHibernateSearchService implements FullTextService 
     public void setFormatter(Formatter formatter) {
         Assert.notNull(formatter, "Lucene Highlight Formatter must not be null.");
         this.formatter = formatter;
-    }
-
-    public int getBatchSize() {
-        return batchSize;
-    }
-
-    public void setBatchSize(int batchSize) {
-        Assert.isTrue(batchSize > 0, "batchSize must be greater than 0");
-        this.batchSize = batchSize;
     }
 
     protected TermMatchingContext buildTermMatchContext(QueryBuilder qb, List<String> fields) {
@@ -200,39 +188,16 @@ public abstract class AbstractHibernateSearchService implements FullTextService 
     	Assert.notNull(docClasses, "Document classes must not be null");
     	for (final Class<?> docClass : docClasses) {
             if (docClass != null && AnnotationUtils.findAnnotation(docClass, Indexed.class) != null) {
-                index(docClass);
+                Method getIdMethod = ReflectionUtils.findMethod(docClass, "getId");
+                if (getIdMethod == null) {
+                    throw new SearchException("Document Class must have getId method.");
+                }
+                index(docClass, getIdMethod);
             }
         }
 	}
     
-    protected abstract long getTotalCount(Class<?> docClass);
-    
-    protected abstract <T> List<T> getEntityList(Class<T> docClass, Pageable pageable);
-    
-    protected <T> void index(Class<T> docClass) {
-        Method getIdMethod = ReflectionUtils.findMethod(docClass, "getId");
-        if (getIdMethod == null) {
-            throw new SearchException("Document Class must have getId method.");
-        }
-        
-    	long total = getTotalCount(docClass);
-		long batchCount = (total % batchSize == 0 ? (total / batchSize) : (total / batchSize) + 1);
-		for (int i = 0; i < batchCount; i++) {
-		    Pageable pageable = PageRequest.of(i, batchSize);
-		    List<T> entities = getEntityList(docClass, pageable);
-		    batchIndex(getIdMethod, entities, EmptyTransactionContext.INSTANCE);
-		}
-    }
-    
-    protected <T> void batchIndex(Method getIdMethod, List<T> entities, TransactionContext txContext) {
-        Worker worker = extendedIntegrator.getWorker();
-        for (T entity : entities) {
-            Serializable id = (Serializable) ReflectionUtils.invokeMethod(getIdMethod, entity);
-            Work work = new Work(entity, id, WorkType.INDEX);
-            worker.performWork(work, txContext);
-        }
-        worker.flushWorks(txContext);
-    }
+    protected abstract <T> void index(Class<T> docClass, Method getIdMethod);
     
     public void shutdown() {
         extendedIntegrator.close();

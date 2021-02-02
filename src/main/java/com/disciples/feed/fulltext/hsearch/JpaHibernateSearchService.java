@@ -1,6 +1,7 @@
 package com.disciples.feed.fulltext.hsearch;
 
 import java.beans.PropertyDescriptor;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -9,13 +10,19 @@ import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.FlushModeType;
 import javax.persistence.ManyToOne;
 
 import org.hibernate.Criteria;
-import org.hibernate.Session;
+import org.hibernate.dialect.Dialect;
+import org.hibernate.dialect.MySQLDialect;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.event.spi.EventSource;
-import org.hibernate.search.backend.TransactionContext;
+import org.hibernate.internal.CriteriaImpl;
+import org.hibernate.query.Query;
+import org.hibernate.search.backend.spi.Work;
+import org.hibernate.search.backend.spi.WorkType;
+import org.hibernate.search.backend.spi.Worker;
 import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.event.impl.EventSourceTransactionContext;
 import org.hibernate.search.jpa.FullTextEntityManager;
@@ -65,9 +72,8 @@ public class JpaHibernateSearchService extends AbstractHibernateSearchService {
                 // fetch from database
                 Set<String> associations = ftQuery.getAssociations();
                 if (!CollectionUtils.isEmpty(associations)) {
-                    Session session = (Session)fullTextEm.getDelegate();
-                    @SuppressWarnings("deprecation")
-                    Criteria rootCriteria = session.createCriteria(docClass);
+                    SharedSessionContractImplementor session = (SharedSessionContractImplementor)fullTextEm.getDelegate();
+                    Criteria rootCriteria = new CriteriaImpl(docClass.getName(), session);
                     for (String association : associations) {
                         rootCriteria.createCriteria(association, JoinType.LEFT_OUTER_JOIN);
                     }
@@ -85,44 +91,39 @@ public class JpaHibernateSearchService extends AbstractHibernateSearchService {
     }
     
     @Override
-    protected long getTotalCount(Class<?> docClass) {
-        String jpql = String.format("select count(*) from %s o", docClass.getSimpleName());
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
-            return (Long)em.createQuery(jpql).getSingleResult();
-        } finally {
-            em.close();
-        }
-    }
-
-    @Override
-    protected <T> List<T> getEntityList(Class<T> docClass, Pageable pageable) {
+    protected <T> void index(Class<T> docClass, Method getIdMethod) {
         AssociationFieldCallback callback = new AssociationFieldCallback(docClass);
         ReflectionUtils.doWithFields(docClass, callback);
         String jpql = callback.getQuery();
+        
         EntityManager em = entityManagerFactory.createEntityManager();
+        SessionFactoryImplementor sessionFactory = entityManagerFactory.unwrap(SessionFactoryImplementor.class);
         try {
-            return em.createQuery(jpql, docClass)
-                    .setFirstResult((int)pageable.getOffset())
-                    .setMaxResults(pageable.getPageSize())
-                    .getResultList();
+            EventSource eventSource = (EventSource)em.getDelegate();
+            EventSourceTransactionContext transactionContext = new EventSourceTransactionContext(eventSource);
+            
+            Dialect dialect = sessionFactory.getJdbcServices().getDialect();
+            Query<T> query = createQuery(em, dialect, jpql, docClass);
+            
+            Worker worker = getExtendedIntegrator().getWorker();
+            query.getResultStream().forEach(entity -> {
+                Serializable id = (Serializable) ReflectionUtils.invokeMethod(getIdMethod, entity);
+                Work work = new Work(entity, id, WorkType.INDEX);
+                worker.performWork(work, transactionContext);
+            });
+            worker.flushWorks(transactionContext);
         } finally {
             em.close();
         }
     }
     
-    @Override
-    protected <T> void batchIndex(Method getIdMethod, List<T> entities, TransactionContext txContext) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        em.setFlushMode(FlushModeType.COMMIT);
-        EventSource eventSource = (EventSource)em.getDelegate();
-        EventSourceTransactionContext transactionContext = new EventSourceTransactionContext(eventSource);
-        try {
-            super.batchIndex(getIdMethod, entities, transactionContext);
-            em.clear();
-        } finally {
-            em.close();
+    protected <T> Query<T> createQuery(EntityManager em, Dialect dialect, String jpql, Class<T> docClass) {
+        Query<T> query = (Query<T>)em.createQuery(jpql, docClass);
+        if (dialect instanceof MySQLDialect) {
+            //enable mysql client-side stream
+            query.setFetchSize(Integer.MIN_VALUE);
         }
+        return query;
     }
 
     private static class AssociationFieldCallback implements FieldCallback {

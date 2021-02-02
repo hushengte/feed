@@ -1,22 +1,31 @@
 package com.disciples.feed.fulltext.hsearch;
 
+import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.Table;
 
+import org.hibernate.search.backend.spi.Work;
+import org.hibernate.search.backend.spi.WorkType;
+import org.hibernate.search.backend.spi.Worker;
 import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.query.engine.spi.EntityInfo;
 import org.hibernate.search.query.engine.spi.HSQuery;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.data.domain.Pageable;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.disciples.feed.fulltext.FullTextQuery;
@@ -78,16 +87,27 @@ public class JdbcHibernateSearchService extends AbstractHibernateSearchService {
     }
 
     @Override
-    protected long getTotalCount(Class<?> docClass) {
-        String countSql = String.format("select count(0) from %s", getTableName(docClass));
-        return jdbcOperations.queryForObject(countSql, Long.class);
-    }
+    protected <T> void index(Class<T> docClass, Method getIdMethod) {
+        String sql = fetchEntitySqlBuilder(docClass, null).toString();
+        final RowMapper<T> rowMapper = getRowMapper(docClass);
+        final Worker worker = getExtendedIntegrator().getWorker();
+        jdbcOperations.query(sql, new ResultSetExtractor<Void>() {
+            @Override
+            public Void extractData(ResultSet rs) throws SQLException, DataAccessException {
+                int rowNum = 0;
+                while (rs.next()) {
+                    processRow(rowMapper.mapRow(rs, rowNum++));
+                }
+                worker.flushWorks(EmptyTransactionContext.INSTANCE);
+                return null;
+            }
 
-    @Override
-    protected <T> List<T> getEntityList(Class<T> docClass, Pageable pageable) {
-        String sql = fetchEntitySqlBuilder(docClass, null).append(" limit ?,?").toString();
-        RowMapper<T> rowMapper = getRowMapper(docClass);
-        return jdbcOperations.query(sql.toString(), rowMapper, pageable.getOffset(), pageable.getPageSize());
+            private void processRow(T entity) {
+                Serializable id = (Serializable) ReflectionUtils.invokeMethod(getIdMethod, entity);
+                Work work = new Work(entity, id, WorkType.INDEX);
+                worker.performWork(work, EmptyTransactionContext.INSTANCE);
+            }
+        });
     }
 
 }

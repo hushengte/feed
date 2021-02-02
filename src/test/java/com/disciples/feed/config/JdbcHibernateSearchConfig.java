@@ -1,5 +1,8 @@
 package com.disciples.feed.config;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -13,7 +16,6 @@ import org.hibernate.search.spi.SearchIntegratorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.disciples.feed.domain.Book;
@@ -27,11 +29,6 @@ import com.disciples.feed.fulltext.hsearch.SimpleSearchConfiguration;
 public class JdbcHibernateSearchConfig {
 
     @Bean
-    public JdbcOperations jdbcOperations(DataSource dataSource) {
-        return new JdbcTemplate(dataSource);
-    }
-    
-    @Bean
     public ExtendedSearchIntegrator searchIntegrator() {
         List<Class<?>> docClasses = Arrays.asList(Book.class, Publisher.class);
         Properties props = new Properties();
@@ -44,8 +41,18 @@ public class JdbcHibernateSearchConfig {
     }
     
     @Bean
-    public FullTextService fullTextService(JdbcOperations jdbcOperations, ExtendedSearchIntegrator searchIntegrator) {
-        return new JdbcHibernateSearchService(jdbcOperations, searchIntegrator);
+    public FullTextService fullTextService(DataSource dataSource, ExtendedSearchIntegrator searchIntegrator) {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+        try (Connection connection = dataSource.getConnection()) {
+            DatabaseMetaData metadata = connection.getMetaData();
+            if (metadata.getDriverName().contains("MySQL")) {
+                // enable mysql client-side stream
+                jdbcTemplate.setFetchSize(Integer.MIN_VALUE);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        return new JdbcHibernateSearchService(jdbcTemplate, searchIntegrator);
     }
     
 }
