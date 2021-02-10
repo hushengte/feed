@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.support.DefaultRepositoryInvokerFactory;
@@ -76,17 +77,20 @@ public class RepositoryService implements ApplicationEventPublisherAware {
     	return repositoryClassCache.get(key);
     }
 	
-	public <T> T save(T entity) {
+	public <ID, T extends Persistable<ID>> T save(T entity) {
 		Assert.notNull(entity, "实体不能为空");
 		RepositoryInvoker invoker = invokeFactory.getInvokerFor(entity.getClass());
-		publisher.publishEvent(new RepositoryEvent(entity, Type.BEFORE_SAVE));
+		final boolean isNew = entity.isNew();
+		Type beforeEventType = isNew ? Type.BEFORE_CREATE : Type.BEFORE_UPDATE;
+		publisher.publishEvent(new RepositoryEvent(entity, beforeEventType));
 		try {
 			invoker.invokeSave(entity);
 		} catch (DataAccessException e) {
 			LOG.error(e.getMessage(), e);
 			throw new RepositoryException("保存失败：数据库访问异常", e);
 		}
-		publisher.publishEvent(new RepositoryEvent(entity, Type.AFTER_SAVE));
+		Type afterEventType = isNew ? Type.AFTER_CREATE : Type.AFTER_UPDATE;
+		publisher.publishEvent(new RepositoryEvent(entity, afterEventType));
 		return entity;
 	}
 	

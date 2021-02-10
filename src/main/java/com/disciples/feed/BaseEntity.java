@@ -5,9 +5,14 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.TableGenerator;
+import javax.persistence.Transient;
+
+import org.springframework.data.domain.Persistable;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @MappedSuperclass
-public abstract class BaseEntity implements Identifiable<Integer> {
+public abstract class BaseEntity implements Identifiable<Integer>, Persistable<Integer> {
 
     private static final long serialVersionUID = 2436149785969523480L;
     
@@ -28,6 +33,13 @@ public abstract class BaseEntity implements Identifiable<Integer> {
         this.id = id;
     }
     
+    @Override
+    @Transient
+    @JsonIgnore
+    public boolean isNew() {
+        return id == null;
+    }
+
     @Override
     public String toString() {
         return String.format("Entity of type %s with id: %s", this.getClass().getName(), getId());

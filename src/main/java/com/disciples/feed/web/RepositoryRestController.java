@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Persistable;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.util.MultiValueMap;
@@ -58,10 +59,12 @@ public class RepositoryRestController {
     		return Response.error(String.format("领域对象不存在：repository=%s", repository));
     	}
     	try {
-			Object obj = converter.read(domainClass, new ServletServerHttpRequest(request));
+			Persistable<?> obj = (Persistable<?>) converter.read(domainClass, new ServletServerHttpRequest(request));
 			return Response.success(repositoryService.save(obj));
 		} catch (IOException e) {
 			return Response.error(String.format("请求体数据读取失败：%s", e.getMessage()));
+		} catch (ClassCastException e) {
+		    return Response.error("实体类型转换失败");
 		}
     }
     

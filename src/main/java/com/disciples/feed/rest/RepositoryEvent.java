@@ -10,7 +10,12 @@ public class RepositoryEvent extends ApplicationEvent {
 
 	private static final long serialVersionUID = 2907380710910347615L;
 	
-	public static enum Type {BEFORE_SAVE, AFTER_SAVE, BEFORE_DELETE, AFTER_DELETE, READ};
+	public static enum Type {
+	    BEFORE_CREATE, AFTER_CREATE, 
+	    BEFORE_UPDATE, AFTER_UPDATE, 
+	    BEFORE_DELETE, AFTER_DELETE, 
+	    READ
+	};
 	
 	private Type eventType;
 

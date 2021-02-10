@@ -55,30 +55,55 @@ public abstract class AbstractRepositoryListener<T> implements GenericApplicatio
 			}
 			@SuppressWarnings("unchecked")
             T entity = (T)source;
-			if (Type.BEFORE_SAVE == eventType) {
-				onBeforeSave(entity);
-			} else if (Type.AFTER_SAVE == eventType) {
-				onAfterSave(entity);
-			} else if (Type.BEFORE_DELETE == eventType) {
-				onBeforeDelete(entity);
-			} else if (Type.AFTER_DELETE == eventType) {
-				onAfterDelete(entity);
+			switch (eventType) {
+			case BEFORE_CREATE:
+			    onBeforeCreate(entity);
+			    break;
+			case AFTER_CREATE:
+			    onAfterCreate(entity);
+			    break;
+			case BEFORE_UPDATE:
+			    onBeforeUpdate(entity);
+			    break;
+			case AFTER_UPDATE:
+			    onAfterUpdate(entity);
+                break;
+			case BEFORE_DELETE: 
+			    onBeforeDelete(entity);
+			    break;
+			case AFTER_DELETE:
+			    onAfterDelete(entity);
+			    break;
+			default:
+			    break;
 			}
 		}
 	}
 
 	/**
-	 * Override this method if you are interested in {@literal RepositoryEvent.Type.BEFORE_SAVE} events.
+	 * Override this method if you are interested in {@literal RepositoryEvent.Type.BEFORE_CREATE} events.
 	 * @param entity The entity being saved.
 	 */
-	protected void onBeforeSave(T entity) {}
+	protected void onBeforeCreate(T entity) {}
 
 	/**
-	 * Override this method if you are interested in {@literal RepositoryEvent.Type.AFTER_SAVE} events.
+	 * Override this method if you are interested in {@literal RepositoryEvent.Type.AFTER_CREATE} events.
 	 * @param entity The entity that was just saved.
 	 */
-	protected void onAfterSave(T entity) {}
+	protected void onAfterCreate(T entity) {}
+	
+	/**
+     * Override this method if you are interested in {@literal RepositoryEvent.Type.BEFORE_UPDATE} events.
+     * @param entity The entity being updated.
+     */
+    protected void onBeforeUpdate(T entity) {}
 
+    /**
+     * Override this method if you are interested in {@literal RepositoryEvent.Type.AFTER_UPDATE} events.
+     * @param entity The entity that was just updated.
+     */
+    protected void onAfterUpdate(T entity) {}
+	
 	/**
 	 * Override this method if you are interested in {@literal RepositoryEvent.Type.BEFORE_DELETE} events.
 	 * @param entity The entity that is being deleted.
