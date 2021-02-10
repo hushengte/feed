@@ -25,6 +25,16 @@ public abstract class AbstractJdbcFullTextConfiguration {
         return PROPERTIES_FILE_CLASSPATH;
     }
     
+    protected Properties loadProperties() {
+        String propertiesClasspath = getPropertiesClasspath();
+        ClassPathResource resource = new ClassPathResource(propertiesClasspath);
+        try {
+            return PropertiesLoaderUtils.loadProperties(resource);
+        } catch (IOException e) {
+            throw new IllegalStateException("Load hibernate search properties failed, classpath: " + propertiesClasspath);
+        }
+    }
+    
     /**
      * Override this method to provide document class list.
      * 
@@ -35,9 +45,7 @@ public abstract class AbstractJdbcFullTextConfiguration {
     
     @Bean
     public SearchConfiguration hibernateSearchConfiguration() throws IOException {
-        ClassPathResource resource = new ClassPathResource(getPropertiesClasspath());
-        Properties props = PropertiesLoaderUtils.loadProperties(resource);
-        
+        Properties props = loadProperties();
         List<Class<?>> docClasses = getDocumentClasses(props);
         if (CollectionUtils.isEmpty(docClasses)) {
             throw new IllegalStateException("Please provide document class list.");
