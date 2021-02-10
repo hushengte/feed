@@ -23,11 +23,11 @@ import org.hibernate.query.Query;
 import org.hibernate.search.backend.spi.Work;
 import org.hibernate.search.backend.spi.WorkType;
 import org.hibernate.search.backend.spi.Worker;
-import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.event.impl.EventSourceTransactionContext;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.jpa.Search;
 import org.hibernate.search.query.engine.spi.HSQuery;
+import org.hibernate.search.spi.SearchIntegrator;
 import org.hibernate.sql.JoinType;
 import org.hibernate.transform.AliasToBeanResultTransformer;
 import org.springframework.beans.BeanUtils;
@@ -45,8 +45,8 @@ public class JpaHibernateSearchService extends AbstractHibernateSearchService {
     private EntityManagerFactory entityManagerFactory;
     
     public JpaHibernateSearchService(EntityManagerFactory entityManagerFactory, 
-            ExtendedSearchIntegrator extendedIntegrator) {
-        super(extendedIntegrator);
+            SearchIntegrator searchIntegrator) {
+        super(searchIntegrator);
         Assert.notNull(entityManagerFactory, "EntityManagerFactory is required.");
         this.entityManagerFactory = entityManagerFactory;
     }
@@ -105,7 +105,7 @@ public class JpaHibernateSearchService extends AbstractHibernateSearchService {
             Dialect dialect = sessionFactory.getJdbcServices().getDialect();
             Query<T> query = createQuery(em, dialect, jpql, docClass);
             
-            Worker worker = getExtendedIntegrator().getWorker();
+            Worker worker = getSearchIntegrator().getWorker();
             query.getResultStream().forEach(entity -> {
                 Serializable id = (Serializable) ReflectionUtils.invokeMethod(getIdMethod, entity);
                 Work work = new Work(entity, id, WorkType.INDEX);

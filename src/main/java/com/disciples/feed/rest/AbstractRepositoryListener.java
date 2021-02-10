@@ -82,15 +82,23 @@ public abstract class AbstractRepositoryListener<T> implements GenericApplicatio
 
 	/**
 	 * Override this method if you are interested in {@literal RepositoryEvent.Type.BEFORE_CREATE} events.
+	 * NOTE: this method simply call {@link #onBeforeUpdate(Object)} by default.
+	 * 
 	 * @param entity The entity being saved.
 	 */
-	protected void onBeforeCreate(T entity) {}
+	protected void onBeforeCreate(T entity) {
+	    onBeforeUpdate(entity);
+	}
 
 	/**
 	 * Override this method if you are interested in {@literal RepositoryEvent.Type.AFTER_CREATE} events.
+	 * NOTE: this method simply call {@link #onAfterUpdate(Object)} by default.
+	 * 
 	 * @param entity The entity that was just saved.
 	 */
-	protected void onAfterCreate(T entity) {}
+	protected void onAfterCreate(T entity) {
+	    onAfterUpdate(entity);
+	}
 	
 	/**
      * Override this method if you are interested in {@literal RepositoryEvent.Type.BEFORE_UPDATE} events.

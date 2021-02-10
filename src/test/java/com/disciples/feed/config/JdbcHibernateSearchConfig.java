@@ -9,10 +9,7 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
-import org.hibernate.search.cfg.spi.SearchConfiguration;
-import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.spi.SearchIntegrator;
-import org.hibernate.search.spi.SearchIntegratorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -21,27 +18,21 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import com.disciples.feed.domain.Book;
 import com.disciples.feed.domain.Publisher;
 import com.disciples.feed.fulltext.FullTextService;
+import com.disciples.feed.fulltext.hsearch.AbstractJdbcFullTextConfiguration;
 import com.disciples.feed.fulltext.hsearch.JdbcHibernateSearchService;
-import com.disciples.feed.fulltext.hsearch.SimpleSearchConfiguration;
 
 @Configuration(proxyBeanMethods = false)
 @Import(DataSourceConfig.class)
-public class JdbcHibernateSearchConfig {
+public class JdbcHibernateSearchConfig extends AbstractJdbcFullTextConfiguration {
 
-    @Bean
-    public ExtendedSearchIntegrator searchIntegrator() {
-        List<Class<?>> docClasses = Arrays.asList(Book.class, Publisher.class);
-        Properties props = new Properties();
-        props.put("hibernate.search.lucene_version", "LUCENE_CURRENT");
+    @Override
+    protected List<Class<?>> getDocumentClasses(Properties props) {
         props.put("hibernate.search.default.indexBase", "/data/feed/jdbcindex");
-        SearchConfiguration searchConfig = new SimpleSearchConfiguration(props, docClasses);
-        SearchIntegrator searchIntegrator = new SearchIntegratorBuilder()
-                .configuration(searchConfig).buildSearchIntegrator();
-        return searchIntegrator.unwrap(ExtendedSearchIntegrator.class);
+        return Arrays.asList(Book.class, Publisher.class);
     }
     
     @Bean
-    public FullTextService fullTextService(DataSource dataSource, ExtendedSearchIntegrator searchIntegrator) {
+    public FullTextService fullTextService(DataSource dataSource, SearchIntegrator searchIntegrator) {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         try (Connection connection = dataSource.getConnection()) {
             DatabaseMetaData metadata = connection.getMetaData();
@@ -54,5 +45,5 @@ public class JdbcHibernateSearchConfig {
         }
         return new JdbcHibernateSearchService(jdbcTemplate, searchIntegrator);
     }
-    
+
 }

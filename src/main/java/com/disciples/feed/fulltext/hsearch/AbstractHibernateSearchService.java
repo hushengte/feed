@@ -16,11 +16,11 @@ import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.backend.TransactionContext;
-import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.query.dsl.TermMatchingContext;
 import org.hibernate.search.query.engine.spi.HSQuery;
+import org.hibernate.search.spi.SearchIntegrator;
 import org.hibernate.search.spi.impl.PojoIndexedTypeIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,21 +44,21 @@ public abstract class AbstractHibernateSearchService implements FullTextService 
     
     private static final float MAX_BOOST = 2.0f;
     
-    private ExtendedSearchIntegrator extendedIntegrator;
+    private SearchIntegrator searchIntegrator;
     private Formatter formatter;
     
-    public AbstractHibernateSearchService(ExtendedSearchIntegrator extendedIntegrator) {
+    public AbstractHibernateSearchService(SearchIntegrator extendedIntegrator) {
     	this(extendedIntegrator, new SimpleHTMLFormatter("<b><font color='red'>", "</font></b>"));
     }
     
-    public AbstractHibernateSearchService(ExtendedSearchIntegrator extendedIntegrator, Formatter formatter) {
-        Assert.notNull(extendedIntegrator, "ExtendedSearchIntegrator is required.");
-        this.extendedIntegrator = extendedIntegrator;
+    public AbstractHibernateSearchService(SearchIntegrator searchIntegrator, Formatter formatter) {
+        Assert.notNull(searchIntegrator, "SearchIntegrator is required.");
+        this.searchIntegrator = searchIntegrator;
         setFormatter(formatter);
     }
     
-    public ExtendedSearchIntegrator getExtendedIntegrator() {
-        return extendedIntegrator;
+    public SearchIntegrator getSearchIntegrator() {
+        return searchIntegrator;
     }
 
     public Formatter getFormatter() {
@@ -89,11 +89,11 @@ public abstract class AbstractHibernateSearchService implements FullTextService 
     	if (!StringUtils.hasText(keyword) || CollectionUtils.isEmpty(fields)) {
     		return new PageImpl<>(Collections.<T>emptyList());
     	}
-    	QueryBuilder qb = extendedIntegrator.buildQueryBuilder().forEntity(docClass).get();
+    	QueryBuilder qb = searchIntegrator.buildQueryBuilder().forEntity(docClass).get();
         // create query
         TermMatchingContext tmc = buildTermMatchContext(qb, fields);
         Query localQuery = tmc.matching(keyword).createQuery();
-        HSQuery hsQuery = extendedIntegrator.createHSQuery(localQuery, docClass);
+        HSQuery hsQuery = searchIntegrator.createHSQuery(localQuery, docClass);
         //TODO: timeoutExceptionFactory
         
         // pagination
@@ -117,7 +117,7 @@ public abstract class AbstractHibernateSearchService implements FullTextService 
         hsQuery.getTimeoutManager().stop();
         
         if (query.isHighlight()) {
-            Analyzer analyzer = extendedIntegrator.getAnalyzer(new PojoIndexedTypeIdentifier(docClass));
+            Analyzer analyzer = searchIntegrator.getAnalyzer(new PojoIndexedTypeIdentifier(docClass));
             Highlighter highlighter = new Highlighter(formatter, new QueryScorer(localQuery));
             doHighlight(docClass, analyzer, highlighter, content, fields);
         }
@@ -200,7 +200,7 @@ public abstract class AbstractHibernateSearchService implements FullTextService 
     protected abstract <T> void index(Class<T> docClass, Method getIdMethod);
     
     public void shutdown() {
-        extendedIntegrator.close();
+        searchIntegrator.close();
     }
     
     static enum EmptyTransactionContext implements TransactionContext {

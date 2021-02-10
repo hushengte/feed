@@ -13,10 +13,10 @@ import javax.persistence.Table;
 import org.hibernate.search.backend.spi.Work;
 import org.hibernate.search.backend.spi.WorkType;
 import org.hibernate.search.backend.spi.Worker;
-import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.query.engine.spi.EntityInfo;
 import org.hibernate.search.query.engine.spi.HSQuery;
+import org.hibernate.search.spi.SearchIntegrator;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -34,8 +34,8 @@ public class JdbcHibernateSearchService extends AbstractHibernateSearchService {
     
     private JdbcOperations jdbcOperations;
 
-    public JdbcHibernateSearchService(JdbcOperations jdbcOperations, ExtendedSearchIntegrator extendedIntegrator) {
-        super(extendedIntegrator);
+    public JdbcHibernateSearchService(JdbcOperations jdbcOperations, SearchIntegrator searchIntegrator) {
+        super(searchIntegrator);
         Assert.notNull(jdbcOperations, "JdbcOperations is required.");
         this.jdbcOperations = jdbcOperations;
     }
@@ -90,7 +90,7 @@ public class JdbcHibernateSearchService extends AbstractHibernateSearchService {
     protected <T> void index(Class<T> docClass, Method getIdMethod) {
         String sql = fetchEntitySqlBuilder(docClass, null).toString();
         final RowMapper<T> rowMapper = getRowMapper(docClass);
-        final Worker worker = getExtendedIntegrator().getWorker();
+        final Worker worker = getSearchIntegrator().getWorker();
         jdbcOperations.query(sql, new ResultSetExtractor<Void>() {
             @Override
             public Void extractData(ResultSet rs) throws SQLException, DataAccessException {
