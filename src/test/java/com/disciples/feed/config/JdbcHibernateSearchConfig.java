@@ -27,10 +27,16 @@ public class JdbcHibernateSearchConfig extends AbstractJdbcFullTextConfiguration
 
     @Override
     protected List<Class<?>> getDocumentClasses(Properties props) {
-        props.put("hibernate.search.default.indexBase", "/data/feed/jdbcindex");
         return Arrays.asList(Book.class, Publisher.class);
     }
     
+    @Override
+    protected Properties loadProperties() {
+        Properties props = super.loadProperties();
+        props.put("hibernate.search.default.indexBase", "/data/feed/jdbcindex");
+        return props;
+    }
+
     @Bean
     public FullTextService fullTextService(DataSource dataSource, SearchIntegrator searchIntegrator) {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
