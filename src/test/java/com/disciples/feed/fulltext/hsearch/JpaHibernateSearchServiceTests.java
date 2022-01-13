@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,10 +19,10 @@ import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.disciples.feed.config.JpaHibernateSearchConfig;
-import com.disciples.feed.dao.BookDao;
-import com.disciples.feed.dao.PublisherDao;
-import com.disciples.feed.domain.Book;
-import com.disciples.feed.domain.Publisher;
+import com.disciples.feed.dao.jpa.BookDao;
+import com.disciples.feed.dao.jpa.PublisherDao;
+import com.disciples.feed.domain.jpa.Book;
+import com.disciples.feed.domain.jpa.Publisher;
 import com.disciples.feed.fulltext.FullTextQuery;
 import com.disciples.feed.fulltext.FullTextService;
 
@@ -65,10 +66,10 @@ public class JpaHibernateSearchServiceTests {
     
     void initBook() {
         Publisher publisher = new Publisher("Eerdmans", "Michigan");
-        publisherDao.save(publisher);
+        Publisher savedPublisher = publisherDao.save(publisher);
         List<Book> books = Arrays.asList(
-                new Book("Test1", "John", publisher),
-                new Book("Test2", "Mark", publisher)
+                new Book("Test1", "John", savedPublisher),
+                new Book("Test2", "Mark", savedPublisher)
                 );
         bookDao.saveAll(books);
     }
@@ -76,7 +77,21 @@ public class JpaHibernateSearchServiceTests {
     @Test
     public void testProjectionQuery() {
         initBook();
-        fullTextService.reindex(Book.class);
+        
+        final CountDownLatch indexFinish = new CountDownLatch(1);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                fullTextService.reindex(Book.class);
+                indexFinish.countDown();
+            }
+        }).start();
+        
+        try {
+            indexFinish.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         
         FullTextQuery<Book> query = FullTextQuery.create(Book.class, "test")
                 .withFields("name").setMaxResults(1).addProjections("name", "author");

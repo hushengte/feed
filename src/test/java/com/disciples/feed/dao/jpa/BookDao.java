@@ -1,4 +1,4 @@
-package com.disciples.feed.dao;
+package com.disciples.feed.dao.jpa;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.disciples.feed.domain.Book;
+import com.disciples.feed.domain.jpa.Book;
 
 public interface BookDao extends JpaRepository<Book, Integer> {
 

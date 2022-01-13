@@ -15,8 +15,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import com.disciples.feed.domain.Book;
-import com.disciples.feed.domain.Publisher;
+import com.disciples.feed.domain.jpa.Book;
+import com.disciples.feed.domain.jpa.Publisher;
 import com.disciples.feed.fulltext.FullTextService;
 import com.disciples.feed.fulltext.hsearch.AbstractJdbcFullTextConfiguration;
 import com.disciples.feed.fulltext.hsearch.JdbcHibernateSearchService;

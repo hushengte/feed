@@ -18,10 +18,10 @@ import org.hibernate.search.spi.IndexingMode;
 import org.hibernate.search.spi.SearchIntegrator;
 import org.springframework.util.Assert;
 
-import com.disciples.feed.BaseEntity;
+import com.disciples.feed.entity.Identifiable;
 import com.disciples.feed.rest.AbstractRepositoryListener;
 
-public class FullTextRepositoryEventListener extends AbstractRepositoryListener<BaseEntity> implements TransactionContext {
+public class FullTextRepositoryEventListener extends AbstractRepositoryListener<Identifiable<?>> implements TransactionContext {
     
     private ExtendedSearchIntegrator searchIntegrator;
     private boolean eventsDisabled;
@@ -53,7 +53,7 @@ public class FullTextRepositoryEventListener extends AbstractRepositoryListener<
     }
 
     @Override
-    protected void onAfterCreate(BaseEntity entity) {
+    protected void onAfterCreate(Identifiable<?> entity) {
         if (eventsDisabled) return;
         if (getDocumentBuilder(entity.getClass()) != null) {
             processWork(entity, entity.getId(), WorkType.ADD);
@@ -61,7 +61,7 @@ public class FullTextRepositoryEventListener extends AbstractRepositoryListener<
     }
 
     @Override
-    protected void onAfterUpdate(BaseEntity entity) {
+    protected void onAfterUpdate(Identifiable<?> entity) {
         if (eventsDisabled) return;
         if (getDocumentBuilder(entity.getClass()) != null) {
             processWork(entity, entity.getId(), WorkType.UPDATE);
@@ -69,7 +69,7 @@ public class FullTextRepositoryEventListener extends AbstractRepositoryListener<
     }
 
     @Override
-    protected void onAfterDelete(BaseEntity entity) {
+    protected void onAfterDelete(Identifiable<?> entity) {
         if (eventsDisabled) return;
         if (getDocumentBuilder(entity.getClass()) != null) {
             processWork(entity, entity.getId(), WorkType.DELETE);

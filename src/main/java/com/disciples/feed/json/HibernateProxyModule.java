@@ -1,6 +1,7 @@
 package com.disciples.feed.json;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
@@ -11,7 +12,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.PropertyAccessorFactory;
 
-import com.disciples.feed.BaseEntity;
+import com.disciples.feed.entity.Identifiable;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -42,8 +43,10 @@ public class HibernateProxyModule extends SimpleModule {
 			    Class<?> entityClass = lazyInitializer.getPersistentClass();
 	            Object entity = BeanUtils.instantiateClass(entityClass);
 	            Object id = lazyInitializer.getIdentifier();
-	            if (entity instanceof BaseEntity) {
-	                ((BaseEntity)entity).setId((Integer)id);
+	            if (entity instanceof Identifiable) {
+	                @SuppressWarnings("unchecked")
+                    Identifiable<Serializable> identifiableEntity = (Identifiable<Serializable>)entity;
+	                identifiableEntity.setId((Serializable)id);
 	            } else {
 	                try {
 	                    PropertyAccessorFactory.forBeanPropertyAccess(entity).setPropertyValue("id", id);

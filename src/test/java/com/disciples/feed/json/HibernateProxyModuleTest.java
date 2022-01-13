@@ -1,7 +1,7 @@
 package com.disciples.feed.json;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.util.Map;
@@ -17,10 +17,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.disciples.feed.config.HibernateConfig;
-import com.disciples.feed.dao.BookDao;
-import com.disciples.feed.dao.PublisherDao;
-import com.disciples.feed.domain.Book;
-import com.disciples.feed.domain.Publisher;
+import com.disciples.feed.dao.jpa.BookDao;
+import com.disciples.feed.dao.jpa.PublisherDao;
+import com.disciples.feed.domain.jpa.Book;
+import com.disciples.feed.domain.jpa.Publisher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(SpringRunner.class)
@@ -62,18 +62,15 @@ public class HibernateProxyModuleTest {
     
     @Test
     public void testSerializeInitializedProxy() {
-        Publisher publisher = new Publisher("Eerdmans", "Michigan");
-        publisherDao.save(publisher);
+        Publisher publisher = publisherDao.save(new Publisher("Eerdmans", "Michigan"));
         Book saved = bookDao.save(new Book("Test", null, publisher));
         EntityManager em = entityManagerFactory.createEntityManager();
         try {
             Book book = em.find(Book.class, saved.getId());
             Map<?, ?> bookData = parseJson(toJson(book), Map.class);
             Map<?, ?> publisherData = (Map<?, ?>) bookData.get("publisher");
-            assertNull(publisherData.get("name"));
+            assertNotNull(publisherData.get("name"));
             
-            // fetch publisher
-            book.getPublisher().getName();
             bookData = parseJson(toJson(book), Map.class);
             publisherData = (Map<?, ?>) bookData.get("publisher");
             assertEquals(publisher.getName(), publisherData.get("name"));

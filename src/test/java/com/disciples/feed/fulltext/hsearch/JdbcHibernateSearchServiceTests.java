@@ -15,8 +15,8 @@ import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.disciples.feed.config.JdbcHibernateSearchConfig;
-import com.disciples.feed.domain.Book;
-import com.disciples.feed.domain.Publisher;
+import com.disciples.feed.domain.jpa.Book;
+import com.disciples.feed.domain.jpa.Publisher;
 import com.disciples.feed.fulltext.FullTextQuery;
 import com.disciples.feed.fulltext.FullTextService;
 

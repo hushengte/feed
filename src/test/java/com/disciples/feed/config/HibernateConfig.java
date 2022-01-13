@@ -17,12 +17,12 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import com.disciples.feed.domain.Book;
+import com.disciples.feed.domain.jpa.Book;
 import com.disciples.feed.repository.DefaultJpaRepository;
 
 @Configuration(proxyBeanMethods = false)
 @Import(DataSourceConfig.class)
-@EnableJpaRepositories(basePackages = "com.disciples.feed.dao", repositoryBaseClass = DefaultJpaRepository.class)
+@EnableJpaRepositories(basePackages = "com.disciples.feed.dao.jpa", repositoryBaseClass = DefaultJpaRepository.class)
 @EnableTransactionManagement(proxyTargetClass = true)
 public class HibernateConfig {
     

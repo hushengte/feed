@@ -1,45 +1,25 @@
-package com.disciples.feed.domain;
-
-import java.util.Date;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
-import javax.persistence.Table;
-import javax.persistence.TableGenerator;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+package com.disciples.feed.domain.mybatis;
 
 import org.hibernate.search.annotations.Analyzer;
 import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Store;
 
-import com.disciples.feed.BaseEntity;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.disciples.feed.entity.mybatis.IntId;
 import com.disciples.feed.fulltext.ChineseAnalyzer;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 
-@SuppressWarnings("serial")
-@Entity
-@Table(name = "lib_book")
-@NamedEntityGraph(name = "Book.publisher", attributeNodes = @NamedAttributeNode(value = "publisher"))
+@TableName(value = "lib_book")
 @Indexed
 @Analyzer(impl = ChineseAnalyzer.class)
-public class Book extends BaseEntity {
+public class Book extends IntId {
     
     private String name;
     private String author;
-    private Publisher publisher;
+    private Integer publisherId;
     private String subject;
     private String isbn;
     private String callNumber;
@@ -49,31 +29,24 @@ public class Book extends BaseEntity {
     private String notes;
     private String ebook;
     
-    private Date createDate;
-    private Date lastUpdate;
-    
     public Book() {}
     
     public Book(Integer id) {
         this.setId(id);
     }
 
-    public Book(String name, String author, Publisher publisher) {
+    public Book(String name, String author, Integer publisherId) {
         this.name = name;
         this.author = author;
-        this.publisher = publisher;
+        this.publisherId = publisherId;
     }
 
-    @Id
     @DocumentId
-    @GeneratedValue(strategy = GenerationType.TABLE, generator = TABLE_GENERATOR_NAME)
-    @TableGenerator(name = TABLE_GENERATOR_NAME, allocationSize = 50)
     @Override
     public Integer getId() {
         return super.getId();
     }
 
-    @Column(nullable = false)
     @Field(store = Store.YES)
     public String getName() {
         return name;
@@ -83,7 +56,6 @@ public class Book extends BaseEntity {
         this.name = name;
     }
 
-    @Column(length = 512)
     @Field(store = Store.YES)
     @JsonRawValue
     public String getAuthor() {
@@ -94,17 +66,15 @@ public class Book extends BaseEntity {
         this.author = author;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "publisher_id")
-    @IndexedEmbedded(depth = 1)
-    public Publisher getPublisher() {
-        return publisher;
+    @Field(store = Store.YES)
+    public Integer getPublisherId() {
+        return publisherId;
     }
 
-    public void setPublisher(Publisher publisher) {
-        this.publisher = publisher;
+    public void setPublisherId(Integer publisherId) {
+        this.publisherId = publisherId;
     }
 
-    @Column(length = 1024)
     @Field(store = Store.YES)
     @JsonRawValue
     public String getSubject() {
@@ -115,7 +85,6 @@ public class Book extends BaseEntity {
         this.subject = subject;
     }
 
-    @Column(length = 20)
     @Field(index = Index.NO, store = Store.YES)
     public String getIsbn() {
         return isbn;
@@ -125,7 +94,6 @@ public class Book extends BaseEntity {
         this.isbn = isbn;
     }
     
-    @Column(length = 50)
     @Field(index = Index.NO, store = Store.YES)
     public String getCallNumber() {
         return callNumber;
@@ -135,7 +103,6 @@ public class Book extends BaseEntity {
         this.callNumber = callNumber;
     }
     
-    @Column(length = 15)
     @Field(index = Index.NO, store = Store.YES)
     public String getPublishYear() {
         return publishYear;
@@ -145,7 +112,6 @@ public class Book extends BaseEntity {
         this.publishYear = publishYear;
     }
 
-    @Column(length = 30)
     public String getCollation() {
         return collation;
     }
@@ -154,7 +120,6 @@ public class Book extends BaseEntity {
         this.collation = collation;
     }
 
-    @Column(length = 30)
     @Field(store = Store.YES)
     public String getSerialName() {
         return serialName;
@@ -164,7 +129,6 @@ public class Book extends BaseEntity {
         this.serialName = serialName;
     }
     
-    @Column(length = 200)
     @Field(store = Store.YES)
     public String getNotes() {
         return notes;
@@ -180,24 +144,6 @@ public class Book extends BaseEntity {
 
     public void setEbook(String ebook) {
         this.ebook = ebook;
-    }
-
-    @Temporal(TemporalType.TIMESTAMP)
-    public Date getCreateDate() {
-        return createDate;
-    }
-
-    public void setCreateDate(Date createDate) {
-        this.createDate = createDate;
-    }
-
-    @Temporal(TemporalType.TIMESTAMP)
-    public Date getLastUpdate() {
-        return lastUpdate;
-    }
-
-    public void setLastUpdate(Date lastUpdate) {
-        this.lastUpdate = lastUpdate;
     }
 
 }

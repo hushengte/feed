@@ -6,7 +6,7 @@ import org.hibernate.search.query.engine.impl.EntityInfoImpl;
 import org.hibernate.search.spi.impl.PojoIndexedTypeIdentifier;
 import org.junit.Test;
 
-import com.disciples.feed.domain.Book;
+import com.disciples.feed.domain.jpa.Book;
 
 public class EntityInfoToBeanConverterTests {
 

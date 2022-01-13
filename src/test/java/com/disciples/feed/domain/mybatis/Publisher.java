@@ -1,12 +1,4 @@
-package com.disciples.feed.domain;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.TableGenerator;
+package com.disciples.feed.domain.mybatis;
 
 import org.hibernate.search.annotations.Analyzer;
 import org.hibernate.search.annotations.DocumentId;
@@ -14,15 +6,14 @@ import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
 
-import com.disciples.feed.BaseEntity;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.disciples.feed.entity.mybatis.IntId;
 import com.disciples.feed.fulltext.ChineseAnalyzer;
 
-@SuppressWarnings("serial")
-@Entity
-@Table(name = "lib_publisher")
+@TableName(value = "lib_publisher")
 @Indexed
 @Analyzer(impl = ChineseAnalyzer.class)
-public class Publisher extends BaseEntity {
+public class Publisher extends IntId {
 	
     private String name;
     private String place;
@@ -42,16 +33,12 @@ public class Publisher extends BaseEntity {
         this.name = name;
     }
 
-	@Id
     @DocumentId
-    @GeneratedValue(strategy = GenerationType.TABLE, generator = TABLE_GENERATOR_NAME)
-    @TableGenerator(name = TABLE_GENERATOR_NAME, allocationSize = 50)
     @Override
     public Integer getId() {
         return super.getId();
     }
 
-    @Column(length = 40, nullable = false)
     @Field(store = Store.YES)
     public String getName() {
         return name;
@@ -61,7 +48,6 @@ public class Publisher extends BaseEntity {
         this.name = name;
     }
 
-    @Column(length = 32)
     @Field(store = Store.YES)
 	public String getPlace() {
 		return place;

@@ -1,4 +1,4 @@
-package com.disciples.feed.dao;
+package com.disciples.feed.dao.jpa;
 
 import java.util.List;
 import java.util.Map;
@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.disciples.feed.domain.Publisher;
+import com.disciples.feed.domain.jpa.Publisher;
 
 public interface PublisherDao extends JpaRepository<Publisher, Integer> {
     

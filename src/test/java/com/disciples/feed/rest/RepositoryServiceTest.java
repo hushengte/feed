@@ -22,10 +22,10 @@ import org.springframework.util.ReflectionUtils;
 
 import com.disciples.feed.config.HibernateConfig;
 import com.disciples.feed.config.RepositoryConfiguration;
-import com.disciples.feed.dao.BookDao;
-import com.disciples.feed.dao.PublisherDao;
-import com.disciples.feed.domain.Book;
-import com.disciples.feed.domain.Publisher;
+import com.disciples.feed.dao.jpa.BookDao;
+import com.disciples.feed.dao.jpa.PublisherDao;
+import com.disciples.feed.domain.jpa.Book;
+import com.disciples.feed.domain.jpa.Publisher;
 
 @ContextConfiguration(classes = {HibernateConfig.class, RepositoryConfiguration.class})
 @RunWith(SpringRunner.class)
@@ -58,8 +58,8 @@ public class RepositoryServiceTest {
 	    
 	    Publisher p1 = new Publisher("Test1", "HangZhou");
 	    Publisher p2 = new Publisher("Test2", "HangZhou");
-        repositoryService.save(p1);
-        repositoryService.save(p2);
+        p1 = repositoryService.save(p1);
+        p2 = repositoryService.save(p2);
 	    List<?> publisherKvs = repositoryService.getKeyValues(Publisher.class, null);
 	    assertEquals(2, publisherKvs.size());
 	    Map<?, ?> p1Map = (Map<?, ?>) publisherKvs.get(0);
@@ -79,8 +79,7 @@ public class RepositoryServiceTest {
     }
     
     private Book createOneBook() {
-        Publisher publisher = new Publisher("Eerdmans", "Michigan");
-        repositoryService.save(publisher);
+        Publisher publisher = repositoryService.save(new Publisher("Eerdmans", "Michigan"));
         Book book = new Book();
         book.setName("The Apostolic Preaching");
         book.setPublishYear("1955");
