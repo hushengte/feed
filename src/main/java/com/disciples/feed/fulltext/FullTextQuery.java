@@ -1,6 +1,5 @@
 package com.disciples.feed.fulltext;
 
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,10 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.ManyToOne;
-
-import org.springframework.beans.BeanUtils;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
@@ -81,13 +76,8 @@ public class FullTextQuery<T> {
 	}
 	
 	private boolean validate(String association) {
-		PropertyDescriptor pd = BeanUtils.getPropertyDescriptor(docClass, association);
-		if (pd != null && (AnnotationUtils.getAnnotation(pd.getReadMethod(), ManyToOne.class) != null || 
-				AnnotationUtils.getAnnotation(pd.getWriteMethod(), ManyToOne.class) != null)) {
-			return true;
-		}
 		Field field = ReflectionUtils.findField(docClass, association);
-		return field != null && AnnotationUtils.getAnnotation(field, ManyToOne.class) != null;
+		return field != null;
 	}
 	
 	public FullTextQuery<T> withAssociations(String... associations) {
