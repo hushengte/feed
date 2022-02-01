@@ -30,9 +30,9 @@
         <servlet-api.version>4.0.4</servlet-api.version>
 		<spring-data-jpa.version>2.6.1</spring-data-jpa.version>
 		<spring-data-solr.version>4.3.15</spring-data-solr.version>
-        <persistence-api.version>2.2.3</persistence-api.version>
-        <hibernate.version>5.4.25.Final</hibernate.version>
-        <hibernate-search.version>5.11.8.Final</hibernate-search.version>
+        <persistence-api.version>2.2</persistence-api.version>
+        <hibernate.version>5.4.32.Final</hibernate.version>
+        <hibernate-search.version>5.11.10.Final</hibernate-search.version>
         <lucene.version>5.5.5</lucene.version>
         
         <logback.version>1.2.10</logback.version>
@@ -90,8 +90,8 @@
 		</dependency>
 		
         <dependency>
-            <groupId>jakarta.persistence</groupId>
-            <artifactId>jakarta.persistence-api</artifactId>
+            <groupId>javax.persistence</groupId>
+            <artifactId>javax.persistence-api</artifactId>
             <version>${persistence-api.version}</version>
             <optional>true</optional>
         </dependency>
