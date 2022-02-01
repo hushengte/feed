@@ -23,19 +23,19 @@
 	</scm>
 	
 	<properties>
-        <jackson.version>2.11.4</jackson.version>
-        <spring.version>5.2.12.RELEASE</spring.version>
-        <spring-data-commons.version>2.3.6.RELEASE</spring-data-commons.version>
+        <jackson.version>2.13.1</jackson.version>
+        <spring.version>5.3.15</spring.version>
+        <spring-data-commons.version>2.6.1</spring-data-commons.version>
         
-        <servlet-api.version>4.0.1</servlet-api.version>
-		<spring-data-jpa.version>2.3.6.RELEASE</spring-data-jpa.version>
-		<spring-data-solr.version>4.2.6.RELEASE</spring-data-solr.version>
-        <jpa-api.version>2.2</jpa-api.version>
+        <servlet-api.version>4.0.4</servlet-api.version>
+		<spring-data-jpa.version>2.6.1</spring-data-jpa.version>
+		<spring-data-solr.version>4.3.15</spring-data-solr.version>
+        <persistence-api.version>2.2.3</persistence-api.version>
         <hibernate.version>5.4.25.Final</hibernate.version>
         <hibernate-search.version>5.11.8.Final</hibernate-search.version>
         <lucene.version>5.5.5</lucene.version>
         
-        <logback.version>1.2.3</logback.version>
+        <logback.version>1.2.10</logback.version>
         <h2.version>2.1.210</h2.version>
 	</properties>
 	
@@ -65,10 +65,10 @@
 		</dependency>
 		
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
             <version>${servlet-api.version}</version>
-            <optional>true</optional>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.data</groupId>
@@ -90,9 +90,9 @@
 		</dependency>
 		
         <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>javax.persistence-api</artifactId>
-            <version>${jpa-api.version}</version>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>${persistence-api.version}</version>
             <optional>true</optional>
         </dependency>
 		<dependency>  
