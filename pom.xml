@@ -35,7 +35,7 @@
         <hibernate-search.version>5.11.8.Final</hibernate-search.version>
         <lucene.version>5.5.5</lucene.version>
         
-        <h2.version>1.4.200</h2.version>
+        <h2.version>2.1.210</h2.version>
 	</properties>
 	
     <repositories>
