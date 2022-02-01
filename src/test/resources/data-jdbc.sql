@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS `lib_book`;
 DROP TABLE IF EXISTS `lib_publisher`;
 CREATE TABLE `lib_publisher` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(40) NOT NULL,
   `place` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`id`)
@@ -16,7 +16,7 @@ insert into `lib_publisher`(`id`,`name`,`place`) values
 (7,'Libraries Unlimited','Westport, Conn.');
 
 CREATE TABLE `lib_book` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int NOT NULL AUTO_INCREMENT,
   `call_number` varchar(50) DEFAULT NULL,
   `collation` varchar(30) DEFAULT NULL,
   `create_date` timestamp DEFAULT NULL,
@@ -27,11 +27,10 @@ CREATE TABLE `lib_book` (
   `notes` varchar(200) DEFAULT NULL,
   `publish_year` varchar(15) DEFAULT NULL,
   `serial_name` varchar(30) DEFAULT NULL,
-  `publisher_id` int(11) DEFAULT NULL,
+  `publisher_id` int DEFAULT NULL,
   `author` varchar(512) DEFAULT NULL,
   `subject` varchar(1024) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `FK_q22apv1r2esehe42sqfa24yua` FOREIGN KEY (`publisher_id`) REFERENCES `lib_publisher` (`id`)
+  PRIMARY KEY (`id`)
 );
 insert into `lib_book` (`id`, `call_number`, `collation`, `create_date`, `ebook`, `isbn`, `last_update`, `name`, `notes`, `publish_year`, 
 	`serial_name`, `publisher_id`, `author`, `subject`) values
@@ -63,7 +62,7 @@ insert into `lib_book` (`id`, `call_number`, `collation`, `create_date`, `ebook`
 DROP TABLE IF EXISTS `id_increment_generator`;
 CREATE TABLE `id_increment_generator` (
   `sequence_name` varchar(255) DEFAULT NULL,
-  `next_val` int(11) DEFAULT NULL
+  `next_val` int DEFAULT NULL
 );
 insert into `id_increment_generator`(`sequence_name`,`next_val`) values 
 ('lib_publisher',8),
