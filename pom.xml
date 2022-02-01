@@ -35,6 +35,7 @@
         <hibernate-search.version>5.11.8.Final</hibernate-search.version>
         <lucene.version>5.5.5</lucene.version>
         
+        <logback.version>1.2.3</logback.version>
         <h2.version>2.1.210</h2.version>
 	</properties>
 	
@@ -139,9 +140,9 @@
         </dependency>
 		
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>${slf4j.version}</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
