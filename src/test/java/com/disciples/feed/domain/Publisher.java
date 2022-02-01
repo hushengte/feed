@@ -14,15 +14,14 @@ import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
 
-import com.disciples.feed.BaseEntity;
+import com.disciples.feed.domain.jpa.IntId;
 import com.disciples.feed.fulltext.ChineseAnalyzer;
 
-@SuppressWarnings("serial")
 @Entity
 @Table(name = "lib_publisher")
 @Indexed
 @Analyzer(impl = ChineseAnalyzer.class)
-public class Publisher extends BaseEntity {
+public class Publisher extends IntId {
 	
     private String name;
     private String place;

@@ -15,7 +15,7 @@ import org.junit.Test;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 
-import com.disciples.feed.BaseEntity;
+import com.disciples.feed.domain.jpa.IntId;
 import com.disciples.feed.util.FormatUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -130,8 +130,7 @@ public class JsonSerializeTests {
         }
     }
     
-    @SuppressWarnings("serial")
-    public static class HibernateEntity extends BaseEntity {
+    public static class HibernateEntity extends IntId {
         
         private PersistentCollection items;
 

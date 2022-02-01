@@ -25,17 +25,16 @@ import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Store;
 
-import com.disciples.feed.BaseEntity;
+import com.disciples.feed.domain.jpa.IntId;
 import com.disciples.feed.fulltext.ChineseAnalyzer;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 
-@SuppressWarnings("serial")
 @Entity
 @Table(name = "lib_book")
 @NamedEntityGraph(name = "Book.publisher", attributeNodes = @NamedAttributeNode(value = "publisher"))
 @Indexed
 @Analyzer(impl = ChineseAnalyzer.class)
-public class Book extends BaseEntity {
+public class Book extends IntId {
     
     private String name;
     private String author;

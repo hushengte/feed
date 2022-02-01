@@ -16,12 +16,13 @@ import org.hibernate.search.engine.spi.EntityIndexBinding;
 import org.hibernate.search.spi.IndexedTypeIdentifier;
 import org.hibernate.search.spi.IndexingMode;
 import org.hibernate.search.spi.SearchIntegrator;
+import org.springframework.data.domain.Persistable;
 import org.springframework.util.Assert;
 
-import com.disciples.feed.BaseEntity;
 import com.disciples.feed.rest.AbstractRepositoryListener;
 
-public class FullTextRepositoryEventListener extends AbstractRepositoryListener<BaseEntity> implements TransactionContext {
+public class FullTextRepositoryEventListener extends AbstractRepositoryListener<Persistable<? extends Serializable>> 
+                            implements TransactionContext {
     
     private ExtendedSearchIntegrator searchIntegrator;
     private boolean eventsDisabled;
@@ -53,7 +54,7 @@ public class FullTextRepositoryEventListener extends AbstractRepositoryListener<
     }
 
     @Override
-    protected void onAfterCreate(BaseEntity entity) {
+    protected void onAfterCreate(Persistable<? extends Serializable> entity) {
         if (eventsDisabled) return;
         if (getDocumentBuilder(entity.getClass()) != null) {
             processWork(entity, entity.getId(), WorkType.ADD);
@@ -61,7 +62,7 @@ public class FullTextRepositoryEventListener extends AbstractRepositoryListener<
     }
 
     @Override
-    protected void onAfterUpdate(BaseEntity entity) {
+    protected void onAfterUpdate(Persistable<? extends Serializable> entity) {
         if (eventsDisabled) return;
         if (getDocumentBuilder(entity.getClass()) != null) {
             processWork(entity, entity.getId(), WorkType.UPDATE);
@@ -69,7 +70,7 @@ public class FullTextRepositoryEventListener extends AbstractRepositoryListener<
     }
 
     @Override
-    protected void onAfterDelete(BaseEntity entity) {
+    protected void onAfterDelete(Persistable<? extends Serializable> entity) {
         if (eventsDisabled) return;
         if (getDocumentBuilder(entity.getClass()) != null) {
             processWork(entity, entity.getId(), WorkType.DELETE);

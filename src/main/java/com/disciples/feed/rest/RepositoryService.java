@@ -83,15 +83,16 @@ public class RepositoryService implements ApplicationEventPublisherAware {
 		final boolean isNew = entity.isNew();
 		Type beforeEventType = isNew ? Type.BEFORE_CREATE : Type.BEFORE_UPDATE;
 		publisher.publishEvent(new RepositoryEvent(entity, beforeEventType));
+		T saved = entity;
 		try {
-			invoker.invokeSave(entity);
+		    saved = invoker.invokeSave(entity);
 		} catch (DataAccessException e) {
 			LOG.error(e.getMessage(), e);
 			throw new RepositoryException("保存失败：数据库访问异常", e);
 		}
 		Type afterEventType = isNew ? Type.AFTER_CREATE : Type.AFTER_UPDATE;
 		publisher.publishEvent(new RepositoryEvent(entity, afterEventType));
-		return entity;
+		return saved;
 	}
 	
 	protected void doDelete(RepositoryInvoker invoker, List<Map<String, Object>> dataList) {
