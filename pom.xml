@@ -33,7 +33,7 @@
         <persistence-api.version>2.2</persistence-api.version>
         <hibernate.version>5.4.32.Final</hibernate.version>
         <hibernate-search.version>5.11.10.Final</hibernate-search.version>
-        <lucene.version>5.5.5</lucene.version>
+        <lucene.version>7.1.0</lucene.version>
         
         <logback.version>1.2.10</logback.version>
         <h2.version>2.1.210</h2.version>
