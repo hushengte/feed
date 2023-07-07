@@ -36,7 +36,7 @@
         <lucene.version>5.5.5</lucene.version>
         
         <logback.version>1.2.10</logback.version>
-        <h2.version>2.1.210</h2.version>
+        <h2.version>2.2.220</h2.version>
 	</properties>
 	
     <repositories>
